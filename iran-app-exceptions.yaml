@@ -1,0 +1,13 @@
+payload:
+  - 'AND,((DOMAIN-SUFFIX,metrix.ir),(PROCESS-NAME,cab.snapp.passenger))'
+  - 'AND,((DOMAIN-SUFFIX,metrix.ir),(PACKAGE-NAME,cab.snapp.passenger))'
+  - 'AND,((DOMAIN-SUFFIX,metrix.ir),(PROCESS-NAME,cab.snapp.driver))'
+  - 'AND,((DOMAIN-SUFFIX,metrix.ir),(PACKAGE-NAME,cab.snapp.driver))'
+  - 'AND,((DOMAIN-SUFFIX,metrix.ir),(PROCESS-NAME,com.zoodfood.android))'
+  - 'AND,((DOMAIN-SUFFIX,metrix.ir),(PACKAGE-NAME,com.zoodfood.android))'
+  - 'AND,((DOMAIN-SUFFIX,metrix.ir),(PROCESS-NAME,com.zoodfood.android.play))'
+  - 'AND,((DOMAIN-SUFFIX,metrix.ir),(PACKAGE-NAME,com.zoodfood.android.play))'
+  - 'AND,((DOMAIN-SUFFIX,metrix.ir),(PROCESS-NAME,taxi.tapsi.passenger))'
+  - 'AND,((DOMAIN-SUFFIX,metrix.ir),(PACKAGE-NAME,taxi.tapsi.passenger))'
+  - 'AND,((DOMAIN-SUFFIX,metrix.ir),(PROCESS-NAME,taxi.tapsi.driver))'
+  - 'AND,((DOMAIN-SUFFIX,metrix.ir),(PACKAGE-NAME,taxi.tapsi.driver))'
