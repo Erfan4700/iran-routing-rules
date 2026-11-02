@@ -142,7 +142,6 @@ def clean_domain(line: str) -> Optional[str]:
     parts = line.split()
     target = parts[1] if (len(parts) >= 2 and re.match(r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$|^::[0-9a-f]?$", parts[0])) else parts[0]
 
-    # Strip v2fly attributes (e.g. @ads, @cn)
     target = target.split("@")[0].strip()
 
     target = re.sub(r"^https?://", "", target)
@@ -151,11 +150,9 @@ def clean_domain(line: str) -> Optional[str]:
     target = re.sub(r"^\+\.?", "", target)
     target = target.strip(".")
 
-    # Filter out IDN/Punycode (xn--), empty dots, and invalid formats
     if target.startswith("xn--") or ".." in target or not DOMAIN_REGEX.match(target):
         return None
 
-    # Safety exclusions: prevent breaking proxy rules
     if target in SAFETY_EXCLUDE_EXACT or any(target.endswith("." + bad) for bad in SAFETY_EXCLUDE_EXACT):
         return None
 
@@ -231,19 +228,33 @@ def collapse_cidrs(raw_cidrs: List[str]) -> Tuple[List[ipaddress.IPv4Network], L
     return collapsed_v4, collapsed_v6
 
 # ==============================================================================
-# MULTI-PLATFORM EXPORTERS
+# MULTI-PLATFORM EXPORTERS (ENHANCED WITH SUBDOMAIN INHERITANCE)
 # ==============================================================================
 def export_domain_target(name: str, domains: Set[str]):
     sorted_domains = sorted(domains)
+    
+    # 1. Mihomo Ruleset Text: Prefixed with '+.' to cover root domain and all subdomains
     with open(TEXT_DIR / f"{name}.txt", "w", encoding="utf-8") as f:
         for d in sorted_domains:
-            f.write(f"{d}\n")
+            f.write(f"+.{d}\n")
+            
+    # 2. Surge / Classical rule-set (.list)
     with open(TEXT_DIR / f"{name}.list", "w", encoding="utf-8") as f:
         for d in sorted_domains:
             f.write(f"DOMAIN-SUFFIX,{d}\n")
+            
+    # 3. Mihomo / Clash Classical YAML (.yaml)
+    with open(TEXT_DIR / f"{name}.yaml", "w", encoding="utf-8") as f:
+        f.write("payload:\n")
+        for d in sorted_domains:
+            f.write(f"  - '+.{d}'\n")
+
+    # 4. Sing-box JSON (.json)
     data = {"version": 1, "rules": [{"domain_suffix": sorted_domains}]}
     with open(TEXT_DIR / f"{name}.json", "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
+        
+    # 5. V2Ray DLC Geosite database input (Plain root names)
     with open(V2RAY_GEOSITE_DIR / name, "w", encoding="utf-8") as f:
         for d in sorted_domains:
             f.write(f"{d}\n")
@@ -255,6 +266,10 @@ def export_ip_target(name: str, cidrs: List[str]):
     with open(TEXT_DIR / f"{name}.list", "w", encoding="utf-8") as f:
         for c in cidrs:
             f.write(f"IP-CIDR,{c},no-resolve\n")
+    with open(TEXT_DIR / f"{name}.yaml", "w", encoding="utf-8") as f:
+        f.write("payload:\n")
+        for c in cidrs:
+            f.write(f"  - '{c}'\n")
     data = {"version": 1, "rules": [{"ip_cidr": cidrs}]}
     with open(TEXT_DIR / f"{name}.json", "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
@@ -395,7 +410,7 @@ def main():
     print(f"  [★] MACRO:   'iran-all-ip' ({len(master_all_cidrs)} collapsed CIDRs)")
 
     # --------------------------------------------------------------------------
-    # 3. UNIFIED SECURITY & THREAT INTEL (HIGHEST PRIORITY - PRESERVES .IR THREATS)
+    # 3. UNIFIED SECURITY & THREAT INTEL
     # --------------------------------------------------------------------------
     print("\n[+] 3/9: Compiling Macro Security ('iran-all-security' & 'iran-all-security-ip')...")
     DOMESTIC_THREAT_REGEX = re.compile(
@@ -440,13 +455,12 @@ def main():
     print(f"  [★] MACRO: 'iran-all-security-ip' ({len(all_threat_cidrs)} CIDRs)")
 
     # --------------------------------------------------------------------------
-    # 4. PERSIAN ADS & TRACKERS (STRICTLY CONFINED - PRESERVES .IR ADS)
+    # 4. PERSIAN ADS & TRACKERS
     # --------------------------------------------------------------------------
     print("\n[+] 4/9: Compiling Macro 'iran-all-ads' (Zero-Trust Protected)...")
     V2FLY_BASE = "https://raw.githubusercontent.com/v2fly/domain-list-community/master/data/"
     ads_sources = [
         f"{V2FLY_BASE}category-ads-ir",
-        # Strictly using the dedicated ads list from bootmortis releases
         "https://github.com/bootmortis/iran-hosted-domains/releases/latest/download/clash_rules_ads.txt",
         "https://raw.githubusercontent.com/MasterKia/PersianBlocker/main/PersianBlockerHosts.txt",
         "https://raw.githubusercontent.com/MasterKia/PersianBlocker/main/PersianBlockerAds-Hosts.txt",
@@ -460,7 +474,6 @@ def main():
             if d and not is_whitelisted(d):
                 raw_ads.add(d)
 
-    # Disjoint check: Ads must not contain Security threats
     raw_ads -= pruned_threats
     pruned_ads = prune_subdomains(raw_ads)
     export_domain_target("iran-all-ads", pruned_ads)
@@ -470,13 +483,9 @@ def main():
     # 5. MASTER IRANIAN DIRECT DOMAINS (ALL .IR REMOVED - ZERO OVERLAP)
     # --------------------------------------------------------------------------
     print("\n[+] 5/9: Aggregating Pure Non-IR Domestic Domains...")
-    # Load whitelist (only non-ir entries)
     raw_iran_domains = {d for d in UNBREAK_WHITELIST if not is_ir_domain(d)}
-    
-    # Load baseline (filter out any accidental .ir entries)
     raw_iran_domains.update({d for d in load_baseline("iran-domains") if not is_ir_domain(d)})
 
-    # A) Load manual additions from custom-domains.txt (Non-IR only)
     custom_baseline_path = BASELINE_DIR / "custom-domains.txt"
     custom_count = 0
     if custom_baseline_path.exists():
@@ -490,7 +499,6 @@ def main():
     else:
         custom_baseline_path.touch()
 
-    # B) Upstream lists: Strictly non-ir direct sources
     v2fly_direct_categories = [
         "category-ir", "category-gov-ir", "category-bank-ir", "category-news-ir",
         "category-tech-ir", "category-media-ir", "category-bourse-ir", "category-forums-ir",
@@ -500,9 +508,7 @@ def main():
 
     domain_upstreams = [
         "https://github.com/ygbkm/clash-rules-iran/releases/latest/download/rules.txt",
-        # Bootmortis Release: strictly the clean non-ir direct domains file
         "https://github.com/bootmortis/iran-hosted-domains/releases/latest/download/clash_rules_other.txt",
-        # Bootmortis TCI raw data (all .ir will be stripped)
         "https://raw.githubusercontent.com/bootmortis/iran-hosted-domains/main/src/data/adsl_tci.txt",
         "https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ir.txt",
         "https://raw.githubusercontent.com/bootmortis/ito-gov-mirror/main/out/domains.csv"
@@ -525,7 +531,6 @@ def main():
                 if len(parts) >= 2:
                     line = parts[1]
             d = clean_domain(line)
-            # CRITICAL RULE: Strictly non-IR for direct routing
             if d and not is_ir_domain(d):
                 raw_iran_domains.add(d)
                 if is_bank_src:
@@ -535,7 +540,6 @@ def main():
                 elif is_media_src:
                     v2fly_media_seeds.add(d)
 
-    # C) Process Bootmortis custom_domains.py (Direct list only, strictly non-ir)
     print("  [*] Fetching Bootmortis custom_domains.py (Direct list)...")
     custom_py_raw = fetch_data("https://raw.githubusercontent.com/bootmortis/iran-hosted-domains/main/src/custom_domains.py", timeout=30)
     if custom_py_raw:
@@ -548,7 +552,6 @@ def main():
                 added_custom += 1
         print(f"  [✓] Integrated {added_custom} tested non-ir domains from custom_domains.py.")
 
-    # D) Process Enamad Mirror Database (~13MB CSV, strictly non-ir)
     print("  [*] Fetching & Streaming Enamad Database (~13MB)...")
     enamad_raw = fetch_data("https://raw.githubusercontent.com/bootmortis/enamad-mirror/main/out/domains.csv", timeout=120)
     enamad_count = 0
@@ -574,7 +577,6 @@ def main():
         except Exception as e:
             print(f"  [!] Warning parsing Enamad CSV: {e}")
 
-    # E) Process Cloudflare Iranian Domains (CF-Web JSON, strictly non-ir)
     print("  [*] Fetching Cloudflare Iranian Domains (CF-Web)...")
     cf_raw = fetch_data("https://raw.githubusercontent.com/hossein-mohseni/CF-Web/main/domains.json", timeout=60)
     cf_count = 0
@@ -594,7 +596,6 @@ def main():
         except Exception as e:
             print(f"  [!] Warning parsing CF-Web JSON: {e}")
 
-    # F) Process Mirava Iranian Linux & Development Package Mirrors (Strictly non-ir)
     print("  [*] Fetching Mirava Iranian Package Mirrors Registry...")
     mirava_raw = fetch_data("https://raw.githubusercontent.com/MiravaOrg/Mirava/refs/heads/main/mirrors_list.yaml", timeout=30)
     mirava_count = 0
@@ -608,9 +609,6 @@ def main():
                 mirava_count += 1
         print(f"  [✓] Mirava: Successfully integrated {mirava_count} non-ir mirrors.")
 
-    # MATHEMATICAL ZERO-OVERLAP GUARANTEE:
-    # 1. Direct domains must NOT contain Ads or Security threats.
-    # 2. Direct domains must NOT contain any .ir domains (covered by DOMAIN-SUFFIX,ir).
     raw_iran_domains = (raw_iran_domains - pruned_ads - pruned_threats)
     raw_iran_domains = {d for d in raw_iran_domains if not is_ir_domain(d)}
     raw_iran_domains.update({d for d in UNBREAK_WHITELIST if not is_ir_domain(d)})
@@ -648,7 +646,7 @@ def main():
     print(f"  [★] MACRO: 'iran-all-domains' ({len(pruned_iran_domains)} pure non-ir domains preserved with 0% overlap)")
 
     # --------------------------------------------------------------------------
-    # 6. GRANULAR DISJOINT MODULES (ZERO LOSS & ZERO OVERLAP GUARANTEED)
+    # 6. GRANULAR DISJOINT MODULES
     # --------------------------------------------------------------------------
     print("\n[+] 6/9: Partitioning Master Domains into Disjoint Modular Sets...")
 
@@ -690,7 +688,7 @@ def main():
     print(f"  [✓] Disjoint math check passed: Submodules == Master ({len(pruned_iran_domains)})")
 
     # --------------------------------------------------------------------------
-    # 7. DOMESTIC GAMBLING & BETTING (MODULAR - PRESERVES .IR GAMBLING)
+    # 7. DOMESTIC GAMBLING & BETTING
     # --------------------------------------------------------------------------
     print("\n[+] 7/9: Compiling 'iran-modular-gambling'...")
     gambling_sources = [
@@ -704,7 +702,6 @@ def main():
             if d and not is_whitelisted(d):
                 raw_gambling.add(d)
 
-    # Disjoint check: Gambling must not overlap with Direct
     raw_gambling -= pruned_iran_domains
     pruned_gambling = prune_subdomains(raw_gambling)
     export_domain_target("iran-modular-gambling", pruned_gambling)
@@ -798,7 +795,6 @@ def main():
     with open(TEXT_DIR / "iran-all-apps.json", "w", encoding="utf-8") as f:
         json.dump(data_apps, f, indent=2, ensure_ascii=False)
 
-    # Classical rules: Global .ir rule handles all .ir domains in one line!
     classical_rules = ["GEOIP,ir", "DOMAIN-SUFFIX,ir"]
     for d in sorted(pruned_iran_domains):
         classical_rules.append(f"DOMAIN-SUFFIX,{d}")
