@@ -63,8 +63,8 @@ const ENABLE_MODULAR_ISP = true;        // [Modular] Domestic ISP IP-CIDR Subnet
 const ENABLE_MODULAR_CLOUD = true;      // [Modular] Domestic Cloud & Datacenter Subnets
 const ENABLE_MODULAR_APPS = true;       // [Modular] Native Iranian Android/iOS Applications
 
-const SECURITY_INTERVAL = 48 * 3600;    // 24 Hours update interval for fast-changing threat feeds
-const STANDARD_INTERVAL = 96 * 3600;    // 48 Hours update interval for general adblock rules
+const SECURITY_INTERVAL = 48 * 3600;    // n Hours update interval for fast-changing threat feeds
+const STANDARD_INTERVAL = 96 * 3600;    // n Hours update interval for general adblock rules
 
 // ==============================================================================
 // 1. DATASETS & STATIC ASSETS (PRE-LOADED IN ENGINE MEMORY)
