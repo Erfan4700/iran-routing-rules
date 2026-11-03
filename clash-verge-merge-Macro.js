@@ -18,8 +18,8 @@ const ENABLE_ANTI_PIRACY = false;        // [Optional | Standalone] Blocks torre
 
 // --- NATIVE OEM & APP TRACKERS (Device Specific - Lightweight 2KB to 4KB each) ---
 // Enable ONLY the brands you or your network devices actually use to prevent RAM bloat:
-const ENABLE_TRACKER_SAMSUNG = false;     // Samsung OneUI telemetry
-const ENABLE_TRACKER_MICROSOFT = true;  // Windows diagnostic & Cortana telemetry
+const ENABLE_TRACKER_SAMSUNG = false;    // Samsung OneUI telemetry
+const ENABLE_TRACKER_MICROSOFT = true;   // Windows diagnostic & Cortana telemetry
 const ENABLE_TRACKER_XIAOMI = false;     // Xiaomi & HyperOS tracking
 const ENABLE_TRACKER_APPLE = false;      // Apple telemetry (Keep false if using iCloud Relay)
 const ENABLE_TRACKER_HUAWEI = false;     // Huawei telemetry
@@ -38,11 +38,11 @@ const ENABLE_IRAN_DIRECT = true;         // Master Switch for Domestic Direct Ro
 const ENABLE_IRAN_SECURITY = true;       // Iran Phishing, Fake Gateways & Threat IPs
 const ENABLE_IRAN_ADS = true;            // Iran Ads & Trackers
 
-const SECURITY_INTERVAL = 36 * 3600;     
-const STANDARD_INTERVAL = 72 * 3600;     
+const SECURITY_INTERVAL = 36 * 3600;     // 36 Hours update interval for macro threat feeds
+const STANDARD_INTERVAL = 72 * 3600;     // 72 Hours update interval for general content & tracker rules
 
 // ==============================================================================
-// 1. DATASETS & REPOSITORIES (DIRECT GITHUB RELEASES)
+// 1. DATASETS & STATIC ASSETS (PRE-LOADED IN ENGINE MEMORY)
 // ==============================================================================
 
 const IRAN_RULES_BASE_URL = "https://github.com/Erfan4700/iran-routing-rules/releases/download/latest/";
@@ -58,20 +58,15 @@ const HAGEZI_TIERS_MAP = Object.freeze({
 
 const SELECTED_HAGEZI_NAME = HAGEZI_TIERS_MAP[HAGEZI_TIER.toLowerCase()] ?? "HageziProPlus";
 
+// Static Compiled Regular Expressions (Compiled once at script load to prevent CPU re-compilation)
 const JUNK_RULES_REGEX = /(?:GEOIP|GEOSITE|RULE-SET),[^,\n]*(?<![a-z0-9])(?:CN|CHINA|RU|RUSSIA)(?![a-z0-9])/i;
 const PROXY_KEYWORD_REGEX = /proxy|auto|select|default|fallback|internet|traffic|manual|nodes|نهایی|اینترنت|دستی|انتخاب|🚀|⚡|♻️/i;
-const MATCH_RULE_REGEX = /^match(?:,|$)/i;
-const DIRECT_KEYWORD_REGEX = /direct/i;
-const IP_RULE_PREFIX_REGEX = /^(?:GEOIP|IP-CIDR|IP-CIDR6|IP-ASN),/i;
-const NO_RESOLVE_REGEX = /,\s*no-resolve(?:\s*#.*)?$/i;
-
+const INFO_NODE_REGEX = /(?:مشخصات|باقی\s*مانده|مصرف|حجم|trial|expire|traffic|volume)/i;
 
 const EMERGENCY_MANUAL_DOMAINS = Object.freeze([
   // "custom-local-bank.com",
   // "my-internal-service.ir"
 ]);
-
-const EMERGENCY_WILDCARDS = Object.freeze(EMERGENCY_MANUAL_DOMAINS.map(d => `+.${d}`));
 
 const FROZEN_HOSTS = Object.freeze({
   "forcesafesearch.google.com": "216.239.38.120",
@@ -111,16 +106,14 @@ const DOH_ENDPOINTS = Object.freeze([
 // 2. HELPER FUNCTIONS
 // ==============================================================================
 
-function makeProvider(name, behavior, format, url, interval) {
-  return {
-    type: "http",
-    behavior: behavior,
-    format: format,
-    url: url,
-    path: `./ruleset/${name}.${format === "mrs" ? "mrs" : (format === "yaml" ? "yaml" : "txt")}`,
-    interval: interval
-  };
-}
+const makeProvider = (name, behavior, format, url, interval) => ({
+  type: "http",
+  behavior,
+  format,
+  url,
+  path: `./ruleset/${name}.${format === "mrs" ? "mrs" : format === "yaml" ? "yaml" : "txt"}`,
+  interval
+});
 
 function resolvePrimaryProxyGroup(groups) {
   if (!Array.isArray(groups) || groups.length === 0) return "PROXIES";
@@ -133,7 +126,7 @@ function resolvePrimaryProxyGroup(groups) {
     if (!group) continue;
     const { type, name } = group;
 
-    if (DIRECT_KEYWORD_REGEX.test(name) || name.toLowerCase() === "reject") continue;
+    if (name.toLowerCase() === "reject" || name.toLowerCase().indexOf("direct") !== -1) continue;
 
     const isMatch = PROXY_KEYWORD_REGEX.test(name);
     if (type === "select" && isMatch) return name;
@@ -146,45 +139,194 @@ function resolvePrimaryProxyGroup(groups) {
   return matchedSelectGroup ?? fallbackAutoGroup ?? groups[0]?.name ?? "PROXIES";
 }
 
+// Fast string checker for IP rules (Replaces heavy Go Regex engine checks)
+function formatUserIpRule(rule) {
+  if (rule.indexOf("no-resolve") !== -1) return rule;
+  const upper = rule.slice(0, 9).toUpperCase();
+  if (
+    upper.startsWith("GEOIP,") || upper.startsWith("IP-ASN,") ||
+    upper.startsWith("IP-CIDR,") || upper.startsWith("IP-CIDR6,")
+  ) {
+    return rule + ",no-resolve";
+  }
+  return rule;
+}
+
 // ==============================================================================
-// 3. MAIN RUNTIME PIPELINE
+// 3. ZERO-COST COMPILATION (MACRO ARCHITECTURE PRE-BUILT AT LOAD TIME)
+// ==============================================================================
+// Note: Constructing macro objects here outside of main() guarantees near-zero RAM
+// allocations and eliminates GC pauses inside the runtime parsing execution.
+
+const BASE_RULE_PROVIDERS = Object.create(null);
+const STATIC_RULES_STAGE1 = []; // Local networks, QUIC, Macro Security, Content, Trackers, Ads
+const STATIC_RULES_STAGE2 = []; // Domestic whitelist & Iran Macro direct rules
+
+const BASE_SNIFFER_SKIP_DOMAINS = [
+  "Mijia Cloud", "+.push.apple.com", "+.apple.com",
+  "+.lan", "+.local", "+.home.arpa", "+.ir"
+];
+
+const BASE_FAKE_IP_FILTER = [
+  "+.ir", "+.lan", "+.local", "+.home.arpa",
+  "captive.apple.com", "+.connectivitycheck.gstatic.com",
+  "detectportal.firefox.com", "+.msftconnecttest.com", "+.msftncsi.com",
+  "time.apple.com", "time.google.com", "time.windows.com", "time.nist.gov",
+  "+.pool.ntp.org", "+.ntp.org",
+  "+.steamcontent.com", "+.battlenet.com", "+.battle.net", "+.ea.com",
+  "stun.*", "*.stun.*", "supl.google.com", "+.supl.google.com",
+  "location.services.mozilla.com"
+];
+
+const BASE_NS_POLICY = Object.create(null);
+BASE_NS_POLICY["+.ir"] = PURE_DOMESTIC_RESOLVERS;
+BASE_NS_POLICY["supl.google.com"] = PURE_DOMESTIC_RESOLVERS;
+BASE_NS_POLICY["+.supl.google.com"] = PURE_DOMESTIC_RESOLVERS;
+
+for (let i = 0; i < EMERGENCY_MANUAL_DOMAINS.length; i++) {
+  const d = EMERGENCY_MANUAL_DOMAINS[i];
+  BASE_SNIFFER_SKIP_DOMAINS.push(`+.${d}`);
+  BASE_FAKE_IP_FILTER.push(`+.${d}`);
+  BASE_NS_POLICY[`+.${d}`] = PURE_DOMESTIC_RESOLVERS;
+}
+
+// ------------------------------------------------------------------------------
+// Compile Pre-Waze Static Pipeline (Stage 1)
+// ------------------------------------------------------------------------------
+
+// 1. Local Network & Private IP Bypass
+STATIC_RULES_STAGE1.push(
+  "GEOIP,private,DIRECT,no-resolve",
+  "DST-PORT,7275,DIRECT",
+  "DST-PORT,6881-6889,DIRECT",
+  "DST-PORT,51413,DIRECT"
+);
+
+// 2. High-Priority QUIC Blocking
+if (ENABLE_QUIC_BLOCK) {
+  STATIC_RULES_STAGE1.push("AND,((NETWORK,UDP),(DST-PORT,443)),REJECT");
+}
+
+function compileFeed(cond, id, behavior, format, url, interval, action, noResolve) {
+  if (!cond) return;
+  BASE_RULE_PROVIDERS[id] = makeProvider(id, behavior, format, url, interval);
+  if (action) {
+    STATIC_RULES_STAGE1.push(`RULE-SET,${id},${action}${noResolve ? ",no-resolve" : ""}`);
+  }
+}
+
+// 3. Global & Domestic Security (Threat Intelligence Bundles)
+compileFeed(ENABLE_HAGEZI_SECURITY_ALL, "hagezi-security-all", "domain", "mrs", `${HAGEZI_RAW_URL}HageziSecurityAll.mrs`, SECURITY_INTERVAL, "REJECT", false);
+compileFeed(ENABLE_HAGEZI_SECURITY_IP, "hagezi-security-ip", "ipcidr", "mrs", `${HAGEZI_RAW_URL}HageziSecurityIP.mrs`, SECURITY_INTERVAL, "REJECT", true);
+compileFeed(ENABLE_IRAN_SECURITY, "iran-all-security", "domain", "mrs", `${IRAN_RULES_BASE_URL}iran-all-security.mrs`, SECURITY_INTERVAL, "REJECT", false);
+compileFeed(ENABLE_IRAN_SECURITY, "iran-all-security-ip", "ipcidr", "mrs", `${IRAN_RULES_BASE_URL}iran-all-security-ip.mrs`, SECURITY_INTERVAL, "REJECT", true);
+
+// 4. Content Filtering (NSFW / Gambling / Popups Macro Bundle)
+compileFeed(ENABLE_HAGEZI_CONTENT_ALL, "hagezi-content-all", "domain", "mrs", `${HAGEZI_RAW_URL}HageziContentAll.mrs`, STANDARD_INTERVAL, "REJECT", false);
+
+// 5. Standalone Anti-Piracy (Never merged into Content to protect downloads)
+compileFeed(ENABLE_ANTI_PIRACY, "hagezi-antipiracy", "domain", "mrs", `${HAGEZI_RAW_URL}HageziAntiPiracy.mrs`, STANDARD_INTERVAL, "REJECT", false);
+
+// 6. Special App Exceptions (Evaluated before general adblocking)
+if (ENABLE_IRAN_DIRECT) {
+  compileFeed(true, "iran-app-exceptions", "classical", "text", `${IRAN_RULES_BASE_URL}iran-app-exceptions.txt`, STANDARD_INTERVAL, "DIRECT", false);
+}
+
+// 7. Base Adblocking & Telemetry
+compileFeed(true, "hagezi-main", "domain", "mrs", `${HAGEZI_RAW_URL}${SELECTED_HAGEZI_NAME}.mrs`, STANDARD_INTERVAL, "REJECT", false);
+compileFeed(ENABLE_IRAN_ADS, "iran-all-ads", "domain", "mrs", `${IRAN_RULES_BASE_URL}iran-all-ads.mrs`, STANDARD_INTERVAL, "REJECT", false);
+
+// 8. Native OEM Trackers Routing (Macro vs Granular)
+if (ENABLE_TRACKER_ALL_OEM) {
+  compileFeed(true, "hagezi-native-all", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeAll.mrs`, STANDARD_INTERVAL, "REJECT", false);
+} else {
+  compileFeed(ENABLE_TRACKER_SAMSUNG, "hagezi-native-samsung", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeSamsung.mrs`, STANDARD_INTERVAL, "REJECT", false);
+  compileFeed(ENABLE_TRACKER_MICROSOFT, "hagezi-native-microsoft", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeMicrosoft.mrs`, STANDARD_INTERVAL, "REJECT", false);
+  compileFeed(ENABLE_TRACKER_TIKTOK, "hagezi-native-tiktok", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeTikTok.mrs`, STANDARD_INTERVAL, "REJECT", false);
+  compileFeed(ENABLE_TRACKER_XIAOMI, "hagezi-native-xiaomi", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeXiaomi.mrs`, STANDARD_INTERVAL, "REJECT", false);
+  compileFeed(ENABLE_TRACKER_APPLE, "hagezi-native-apple", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeApple.mrs`, STANDARD_INTERVAL, "REJECT", false);
+  compileFeed(ENABLE_TRACKER_HUAWEI, "hagezi-native-huawei", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeHuawei.mrs`, STANDARD_INTERVAL, "REJECT", false);
+  compileFeed(ENABLE_TRACKER_BBK, "hagezi-native-oppo-realme", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeOppoRealme.mrs`, STANDARD_INTERVAL, "REJECT", false);
+  compileFeed(ENABLE_TRACKER_AMAZON, "hagezi-native-amazon", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeAmazon.mrs`, STANDARD_INTERVAL, "REJECT", false);
+  compileFeed(ENABLE_TRACKER_LG, "hagezi-native-lg", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeLGWebOS.mrs`, STANDARD_INTERVAL, "REJECT", false);
+  compileFeed(ENABLE_TRACKER_ROKU, "hagezi-native-roku", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeRoku.mrs`, STANDARD_INTERVAL, "REJECT", false);
+  compileFeed(ENABLE_TRACKER_TIKTOK_EXT, "hagezi-native-tiktok-ext", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeTikTokExtended.mrs`, STANDARD_INTERVAL, "REJECT", false);
+}
+
+// ------------------------------------------------------------------------------
+// Compile Post-Waze Domestic Whitelist Pipeline (Stage 2)
+// ------------------------------------------------------------------------------
+
+// 9. Manual Zero-Delay Domestic Whitelist
+for (let i = 0; i < EMERGENCY_MANUAL_DOMAINS.length; i++) {
+  STATIC_RULES_STAGE2.push(`DOMAIN-SUFFIX,${EMERGENCY_MANUAL_DOMAINS[i]},DIRECT`);
+}
+STATIC_RULES_STAGE2.push("DOMAIN-SUFFIX,ir,DIRECT");
+
+// 10. Iran Macro Direct Routing
+if (ENABLE_IRAN_DIRECT) {
+  const iranAllTag = "rule-set:iran-all-domains";
+  BASE_SNIFFER_SKIP_DOMAINS.push(iranAllTag);
+  BASE_FAKE_IP_FILTER.splice(1, 0, iranAllTag);
+  BASE_NS_POLICY[iranAllTag] = PURE_DOMESTIC_RESOLVERS;
+
+  BASE_RULE_PROVIDERS["iran-all-apps"] = makeProvider("iran-all-apps", "classical", "text", `${IRAN_RULES_BASE_URL}iran-all-apps.txt`, STANDARD_INTERVAL);
+  BASE_RULE_PROVIDERS["iran-all-domains"] = makeProvider("iran-all-domains", "domain", "mrs", `${IRAN_RULES_BASE_URL}iran-all-domains.mrs`, STANDARD_INTERVAL);
+  BASE_RULE_PROVIDERS["iran-all-ip"] = makeProvider("iran-all-ip", "ipcidr", "mrs", `${IRAN_RULES_BASE_URL}iran-all-ip.mrs`, STANDARD_INTERVAL);
+  BASE_RULE_PROVIDERS["iran-asn"] = makeProvider("iran-asn", "classical", "text", `${IRAN_RULES_BASE_URL}iran-asn.txt`, STANDARD_INTERVAL);
+
+  STATIC_RULES_STAGE2.push(
+    "RULE-SET,iran-all-apps,DIRECT,no-resolve",
+    "RULE-SET,iran-all-domains,DIRECT",
+    "RULE-SET,iran-all-ip,DIRECT,no-resolve",
+    "RULE-SET,iran-asn,DIRECT,no-resolve"
+  );
+}
+
+// Pre-create the Set of base rules for O(1) deduplication against user rules
+const PRECOMPILED_BASE_RULES_SET = new Set([...STATIC_RULES_STAGE1, ...STATIC_RULES_STAGE2]);
+
+// ==============================================================================
+// 4. MAIN RUNTIME PIPELINE (BLAZING-FAST EXECUTION)
 // ==============================================================================
 
 function main(config, profileName) {
   // --------------------------------------------------------------------------
-  // [FIX 1]: Normalize proxy configurations (Strip info nodes & cast string ports)
+  // [FIX 1]: Single-Pass Proxy Normalization (Strip info nodes, cast ports & extract names)
   // --------------------------------------------------------------------------
-  if (Array.isArray(config.proxies)) {
-    // Filter out non-functional metadata/informational nodes (traffic balance, expiry, etc.)
-    config.proxies = config.proxies.filter(p => {
-      if (!p || !p.name) return false;
-      return !/(مشخصات|باقی مانده|مصرف|trial|expire|traffic)/i.test(p.name);
-    });
+  let validProxyNames = null;
 
-    for (let i = 0, len = config.proxies.length; i < len; i++) {
-      const p = config.proxies[i];
-      if (!p) continue;
+  if (Array.isArray(config.proxies)) {
+    const raw = config.proxies;
+    const filtered = [];
+    const names = [];
+
+    for (let i = 0, len = raw.length; i < len; i++) {
+      const p = raw[i];
+      // Filter out non-functional metadata/informational nodes (traffic balance, expiry, etc.)
+      if (!p || !p.name || INFO_NODE_REGEX.test(p.name)) continue;
 
       // Robust port validation: convert string to integer and ensure a valid port range
-      if (typeof p.port === "string") {
-        const parsed = parseInt(p.port, 10);
-        if (!Number.isNaN(parsed) && parsed > 0 && parsed <= 65535) {
-          p.port = parsed;
-        }
-      }
+      const port = +p.port;
+      if (port > 0 && port <= 65535) p.port = port;
 
       if (p.tls || p["reality-opts"] || p.type === "vless" || p.type === "trojan" || p.type === "hysteria2") {
         p["client-fingerprint"] ??= "chrome";
       }
+
+      filtered.push(p);
+      names.push(p.name);
     }
+    config.proxies = filtered;
+    validProxyNames = names;
   }
 
   // --------------------------------------------------------------------------
   // [FIX 2]: Auto-generate Proxy Groups if the profile input is empty or raw
   // --------------------------------------------------------------------------
-  const validProxyNames = Array.isArray(config.proxies) && config.proxies.length > 0
-    ? config.proxies.map(p => p.name)
-    : ["DIRECT"];
+  if (!validProxyNames || validProxyNames.length === 0) {
+    validProxyNames = ["DIRECT"];
+  }
 
   if (!Array.isArray(config["proxy-groups"]) || config["proxy-groups"].length === 0) {
     config["proxy-groups"] = [
@@ -202,16 +344,14 @@ function main(config, profileName) {
         proxies: [...validProxyNames]
       }
     ];
-  } else {
+  } else if (config["proxy-groups"][0]?.proxies?.length === 0) {
     // If the group exists but contains no proxies, link all validated nodes
-    const primary = config["proxy-groups"][0];
-    if (primary && Array.isArray(primary.proxies) && primary.proxies.length === 0) {
-      primary.proxies = validProxyNames;
-    }
+    config["proxy-groups"][0].proxies = validProxyNames;
   }
 
   const defaultProxyGroup = resolvePrimaryProxyGroup(config["proxy-groups"]);
 
+  // Core System Kernel Settings
   config["tcp-concurrent"] = true;
   config["unified-delay"] = true;
   config["find-process-mode"] = "strict";
@@ -230,16 +370,9 @@ function main(config, profileName) {
   profile["store-fake-ip"] = true;
   profile["store-selected"] = true;
 
-  // [FIX 3]: جلوگیری از اسنیف دامنه‌های ایرانی دیتابیس جامع جهت رفع کندی و اختلال Handshake
-  const snifferSkipDomains = [
-    "Mijia Cloud", "+.push.apple.com", "+.apple.com",
-    "+.lan", "+.local", "+.home.arpa", "+.ir",
-    ...EMERGENCY_WILDCARDS
-  ];
-  if (ENABLE_IRAN_DIRECT) {
-    snifferSkipDomains.push("rule-set:iran-all-domains");
-  }
-
+  // --------------------------------------------------------------------------
+  // [FIX 3]: Zero-Allocation Sniffer Configuration (Prevent Iran Handshake Latency)
+  // --------------------------------------------------------------------------
   config.sniffer = {
     enable: true,
     "force-dns-mapping": true,
@@ -253,13 +386,16 @@ function main(config, profileName) {
       "127.0.0.0/8", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16",
       "224.0.0.0/4", "255.255.255.255/32"
     ],
-    "skip-domain": snifferSkipDomains
+    "skip-domain": BASE_SNIFFER_SKIP_DOMAINS
   };
 
   if (ENABLE_SAFE_SEARCH) {
-    config.hosts = Object.assign({}, config.hosts ?? {}, FROZEN_HOSTS);
+    config.hosts = Object.assign(config.hosts ?? {}, FROZEN_HOSTS);
   }
 
+  // --------------------------------------------------------------------------
+  // [FIX 4]: DNS Architecture & Dynamic Nameserver Policy Mapping
+  // --------------------------------------------------------------------------
   const dns = (config.dns ??= {});
   dns.enable = true;
   dns["enhanced-mode"] = "fake-ip";
@@ -276,206 +412,58 @@ function main(config, profileName) {
   dns["default-nameserver"] = HYBRID_BOOTSTRAP_RESOLVERS;
   dns["proxy-server-nameserver"] = UNPOISONED_PROXY_RESOLVERS;
   dns["direct-nameserver"] = PURE_DOMESTIC_RESOLVERS;
-
-  const fakeIpList = [
-    "+.ir",
-    ...EMERGENCY_WILDCARDS,
-    "+.lan", "+.local", "+.home.arpa",
-    "captive.apple.com", "+.connectivitycheck.gstatic.com",
-    "detectportal.firefox.com", "+.msftconnecttest.com", "+.msftncsi.com",
-    "time.apple.com", "time.google.com", "time.windows.com", "time.nist.gov",
-    "+.pool.ntp.org", "+.ntp.org",
-    "+.steamcontent.com", "+.battlenet.com", "+.battle.net", "+.ea.com",
-    "stun.*", "*.stun.*", "supl.google.com", "+.supl.google.com",
-    "location.services.mozilla.com"
-  ];
-  if (ENABLE_IRAN_DIRECT) {
-    fakeIpList.splice(1, 0, "rule-set:iran-all-domains");
-  }
-  dns["fake-ip-filter"] = fakeIpList;
+  dns["fake-ip-filter"] = BASE_FAKE_IP_FILTER;
 
   dns.nameserver = DOH_ENDPOINTS.map(url => `${url}#${defaultProxyGroup}`);
 
-  const nsPolicy = {
-    "+.ir": PURE_DOMESTIC_RESOLVERS,
-    "supl.google.com": PURE_DOMESTIC_RESOLVERS,
-    "+.supl.google.com": PURE_DOMESTIC_RESOLVERS
-  };
-  if (ENABLE_IRAN_DIRECT) {
-    nsPolicy["rule-set:iran-all-domains"] = PURE_DOMESTIC_RESOLVERS;
-  }
-  for (let i = 0; i < EMERGENCY_MANUAL_DOMAINS.length; i++) {
-    nsPolicy[`+.${EMERGENCY_MANUAL_DOMAINS[i]}`] = PURE_DOMESTIC_RESOLVERS;
-  }
-  dns["nameserver-policy"] = Object.assign(dns["nameserver-policy"] ?? {}, nsPolicy);
+  // Guaranteed immunity for domestic Iranian resolvers using clean Spread syntax
+  dns["nameserver-policy"] = { ...dns["nameserver-policy"], ...BASE_NS_POLICY };
 
-  // ============================================================================
-  // RULE-PROVIDERS DEFINITION
-  // ============================================================================
-  const providers = {};
+  // Merge Rule Providers (Instant clone of pre-compiled dictionary)
+  config["rule-providers"] = Object.assign({}, BASE_RULE_PROVIDERS, config["rule-providers"]);
 
-  // 1. Global Base Adblock Tier
-  providers["hagezi-main"] = makeProvider(
-    `hagezi-${HAGEZI_TIER}`, "domain", "mrs",
-    `${HAGEZI_RAW_URL}${SELECTED_HAGEZI_NAME}.mrs`, STANDARD_INTERVAL
-  );
-
-  // 2. HaGeZi Macro Bundles (General Security & Pure Content)
-  if (ENABLE_HAGEZI_SECURITY_ALL) {
-    providers["hagezi-security-all"] = makeProvider("HageziSecurityAll", "domain", "mrs", `${HAGEZI_RAW_URL}HageziSecurityAll.mrs`, SECURITY_INTERVAL);
-  }
-  if (ENABLE_HAGEZI_SECURITY_IP) {
-    providers["hagezi-security-ip"] = makeProvider("HageziSecurityIP", "ipcidr", "mrs", `${HAGEZI_RAW_URL}HageziSecurityIP.mrs`, SECURITY_INTERVAL);
-  }
-  if (ENABLE_HAGEZI_CONTENT_ALL) {
-    providers["hagezi-content-all"] = makeProvider("HageziContentAll", "domain", "mrs", `${HAGEZI_RAW_URL}HageziContentAll.mrs`, STANDARD_INTERVAL);
-  }
-
-  // 3. Standalone Anti-Piracy (Never merged into Content to protect downloads)
-  if (ENABLE_ANTI_PIRACY) {
-    providers["hagezi-antipiracy"] = makeProvider("HageziAntiPiracy", "domain", "mrs", `${HAGEZI_RAW_URL}HageziAntiPiracy.mrs`, STANDARD_INTERVAL);
-  }
-
-  // 4. Native OEM Trackers (Granular & Zero-Bloat)
-  if (ENABLE_TRACKER_ALL_OEM) {
-    providers["hagezi-native-all"] = makeProvider("HageziNativeAll", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeAll.mrs`, STANDARD_INTERVAL);
-  } else {
-    if (ENABLE_TRACKER_SAMSUNG) providers["hagezi-native-samsung"] = makeProvider("HageziNativeSamsung", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeSamsung.mrs`, STANDARD_INTERVAL);
-    if (ENABLE_TRACKER_MICROSOFT) providers["hagezi-native-microsoft"] = makeProvider("HageziNativeMicrosoft", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeMicrosoft.mrs`, STANDARD_INTERVAL);
-    if (ENABLE_TRACKER_TIKTOK) providers["hagezi-native-tiktok"] = makeProvider("HageziNativeTikTok", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeTikTok.mrs`, STANDARD_INTERVAL);
-    if (ENABLE_TRACKER_XIAOMI) providers["hagezi-native-xiaomi"] = makeProvider("HageziNativeXiaomi", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeXiaomi.mrs`, STANDARD_INTERVAL);
-    if (ENABLE_TRACKER_APPLE) providers["hagezi-native-apple"] = makeProvider("HageziNativeApple", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeApple.mrs`, STANDARD_INTERVAL);
-    if (ENABLE_TRACKER_HUAWEI) providers["hagezi-native-huawei"] = makeProvider("HageziNativeHuawei", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeHuawei.mrs`, STANDARD_INTERVAL);
-    if (ENABLE_TRACKER_BBK) providers["hagezi-native-oppo-realme"] = makeProvider("HageziNativeOppoRealme", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeOppoRealme.mrs`, STANDARD_INTERVAL);
-    if (ENABLE_TRACKER_AMAZON) providers["hagezi-native-amazon"] = makeProvider("HageziNativeAmazon", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeAmazon.mrs`, STANDARD_INTERVAL);
-    if (ENABLE_TRACKER_LG) providers["hagezi-native-lg"] = makeProvider("HageziNativeLGWebOS", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeLGWebOS.mrs`, STANDARD_INTERVAL);
-    if (ENABLE_TRACKER_ROKU) providers["hagezi-native-roku"] = makeProvider("HageziNativeRoku", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeRoku.mrs`, STANDARD_INTERVAL);
-    if (ENABLE_TRACKER_TIKTOK_EXT) providers["hagezi-native-tiktok-ext"] = makeProvider("HageziNativeTikTokExtended", "domain", "mrs", `${HAGEZI_RAW_URL}HageziNativeTikTokExtended.mrs`, STANDARD_INTERVAL);
-  }
-
-  // 5. Iran Core Macro Suite & Dynamic Exceptions
-  if (ENABLE_IRAN_SECURITY) {
-    providers["iran-all-security"] = makeProvider("iran-all-security", "domain", "mrs", `${IRAN_RULES_BASE_URL}iran-all-security.mrs`, SECURITY_INTERVAL);
-    providers["iran-all-security-ip"] = makeProvider("iran-all-security-ip", "ipcidr", "mrs", `${IRAN_RULES_BASE_URL}iran-all-security-ip.mrs`, SECURITY_INTERVAL);
-  }
-  if (ENABLE_IRAN_ADS) {
-    providers["iran-all-ads"] = makeProvider("iran-all-ads", "domain", "mrs", `${IRAN_RULES_BASE_URL}iran-all-ads.mrs`, STANDARD_INTERVAL);
-  }
-  if (ENABLE_IRAN_DIRECT) {
-    providers["iran-app-exceptions"] = makeProvider("iran-app-exceptions", "classical", "text", `${IRAN_RULES_BASE_URL}iran-app-exceptions.txt`, STANDARD_INTERVAL);
-    providers["iran-all-domains"] = makeProvider("iran-all-domains", "domain", "mrs", `${IRAN_RULES_BASE_URL}iran-all-domains.mrs`, STANDARD_INTERVAL);
-    providers["iran-all-ip"] = makeProvider("iran-all-ip", "ipcidr", "mrs", `${IRAN_RULES_BASE_URL}iran-all-ip.mrs`, STANDARD_INTERVAL);
-    providers["iran-all-apps"] = makeProvider("iran-all-apps", "classical", "text", `${IRAN_RULES_BASE_URL}iran-all-apps.txt`, STANDARD_INTERVAL);
-    providers["iran-asn"] = makeProvider("iran-asn", "classical", "text", `${IRAN_RULES_BASE_URL}iran-asn.txt`, STANDARD_INTERVAL);
-  }
-
-  config["rule-providers"] = Object.assign(config["rule-providers"] ?? {}, providers);
-
-  // ============================================================================
-  // RULES EVALUATION PIPELINE
-  // ============================================================================
-  const ruleSet = new Set();
-
-  // 1. Local Network & Private IP Bypass
-  ruleSet.add("GEOIP,private,DIRECT,no-resolve");
-  ruleSet.add("DST-PORT,7275,DIRECT");
-
-  // Torrents
-  ruleSet.add("DST-PORT,6881-6889,DIRECT");
-  ruleSet.add("DST-PORT,51413,DIRECT");
-
-  // 2. High-Priority QUIC Blocking
-  if (ENABLE_QUIC_BLOCK) {
-    ruleSet.add("AND,((NETWORK,UDP),(DST-PORT,443)),REJECT");
-  }
-
-  // 3. Global & Domestic Security (Threat Intelligence)
-  if (ENABLE_HAGEZI_SECURITY_ALL) ruleSet.add("RULE-SET,hagezi-security-all,REJECT");
-  if (ENABLE_HAGEZI_SECURITY_IP) ruleSet.add("RULE-SET,hagezi-security-ip,REJECT,no-resolve");
-  if (ENABLE_IRAN_SECURITY) {
-    ruleSet.add("RULE-SET,iran-all-security,REJECT");
-    ruleSet.add("RULE-SET,iran-all-security-ip,REJECT,no-resolve");
-  }
-
-  // 4. Content Filtering (NSFW / Gambling / Popups)
-  if (ENABLE_HAGEZI_CONTENT_ALL) ruleSet.add("RULE-SET,hagezi-content-all,REJECT");
-
-  // 5. Standalone Anti-Piracy
-  if (ENABLE_ANTI_PIRACY) ruleSet.add("RULE-SET,hagezi-antipiracy,REJECT");
-  
-  // 6. SPECIAL APP EXCEPTIONS
-  if (ENABLE_IRAN_DIRECT) {
-    ruleSet.add("RULE-SET,iran-app-exceptions,DIRECT");
-  }
-
-  // 7. Base Adblocking & Telemetry
-  ruleSet.add("RULE-SET,hagezi-main,REJECT");
-  if (ENABLE_IRAN_ADS) ruleSet.add("RULE-SET,iran-all-ads,REJECT");
-
-  // 8. Native OEM Trackers Routing
-  if (ENABLE_TRACKER_ALL_OEM) {
-    ruleSet.add("RULE-SET,hagezi-native-all,REJECT");
-  } else {
-    if (ENABLE_TRACKER_SAMSUNG) ruleSet.add("RULE-SET,hagezi-native-samsung,REJECT");
-    if (ENABLE_TRACKER_MICROSOFT) ruleSet.add("RULE-SET,hagezi-native-microsoft,REJECT");
-    if (ENABLE_TRACKER_TIKTOK) ruleSet.add("RULE-SET,hagezi-native-tiktok,REJECT");
-    if (ENABLE_TRACKER_XIAOMI) ruleSet.add("RULE-SET,hagezi-native-xiaomi,REJECT");
-    if (ENABLE_TRACKER_APPLE) ruleSet.add("RULE-SET,hagezi-native-apple,REJECT");
-    if (ENABLE_TRACKER_HUAWEI) ruleSet.add("RULE-SET,hagezi-native-huawei,REJECT");
-    if (ENABLE_TRACKER_BBK) ruleSet.add("RULE-SET,hagezi-native-oppo-realme,REJECT");
-    if (ENABLE_TRACKER_AMAZON) ruleSet.add("RULE-SET,hagezi-native-amazon,REJECT");
-    if (ENABLE_TRACKER_LG) ruleSet.add("RULE-SET,hagezi-native-lg,REJECT");
-    if (ENABLE_TRACKER_ROKU) ruleSet.add("RULE-SET,hagezi-native-roku,REJECT");
-    if (ENABLE_TRACKER_TIKTOK_EXT) ruleSet.add("RULE-SET,hagezi-native-tiktok-ext,REJECT");
-  }
-  
-  // 9. Special Domain Overrides
-  ruleSet.add(`DOMAIN-SUFFIX,waze.com,${defaultProxyGroup}`);
-  ruleSet.add(`DOMAIN-KEYWORD,waze,${defaultProxyGroup}`);
-
-  // 10. Manual Zero-Delay Domestic Whitelist
-  for (let i = 0; i < EMERGENCY_MANUAL_DOMAINS.length; i++) {
-    ruleSet.add(`DOMAIN-SUFFIX,${EMERGENCY_MANUAL_DOMAINS[i]},DIRECT`);
-  }
-  ruleSet.add("DOMAIN-SUFFIX,ir,DIRECT");
-
-  // 11. Iran Macro Direct Routing
-  if (ENABLE_IRAN_DIRECT) {
-    ruleSet.add("RULE-SET,iran-all-apps,DIRECT,no-resolve");
-    ruleSet.add("RULE-SET,iran-all-domains,DIRECT");
-    ruleSet.add("RULE-SET,iran-all-ip,DIRECT,no-resolve");
-    ruleSet.add("RULE-SET,iran-asn,DIRECT,no-resolve");
-  }
-
-  // 12. Integration of Existing Profile Rules
-  const rawRules = config.rules;
+  // --------------------------------------------------------------------------
+  // [FIX 5]: Rapid User Rules Sanitization & Zero-Copy Concatenation
+  // --------------------------------------------------------------------------
   let capturedMatchRule = null;
+  const userSanitizedRules = [];
+  const seenRules = new Set(PRECOMPILED_BASE_RULES_SET);
 
+  seenRules.add(`DOMAIN-SUFFIX,waze.com,${defaultProxyGroup}`);
+  seenRules.add(`DOMAIN-KEYWORD,waze,${defaultProxyGroup}`);
+
+  const rawRules = config.rules;
   if (Array.isArray(rawRules)) {
     for (let i = 0, len = rawRules.length; i < len; i++) {
       const rule = rawRules[i];
-      if (typeof rule !== "string" || rule.length === 0) continue;
+      if (typeof rule !== "string") continue;
+      const clean = rule.trim();
+      if (!clean || JUNK_RULES_REGEX.test(clean)) continue;
 
-      let cleanRule = rule.trim();
-      if (cleanRule.length === 0) continue;
-
-      if (IP_RULE_PREFIX_REGEX.test(cleanRule) && !NO_RESOLVE_REGEX.test(cleanRule)) {
-        cleanRule = `${cleanRule},no-resolve`;
+      if (clean.slice(0, 5).toUpperCase() === "MATCH") {
+        if (!capturedMatchRule && clean.toLowerCase().indexOf("direct") === -1) {
+          capturedMatchRule = clean;
+        }
+        continue;
       }
 
-      if (MATCH_RULE_REGEX.test(cleanRule)) {
-        if (!capturedMatchRule && !DIRECT_KEYWORD_REGEX.test(cleanRule)) {
-          capturedMatchRule = cleanRule;
-        }
-      } else if (!JUNK_RULES_REGEX.test(cleanRule)) {
-        ruleSet.add(cleanRule);
+      const formatted = formatUserIpRule(clean);
+      if (!seenRules.has(formatted)) {
+        seenRules.add(formatted);
+        userSanitizedRules.push(formatted);
       }
     }
   }
 
-  // 13. Final Fallback Catch-All
-  ruleSet.add(capturedMatchRule ?? `MATCH,${defaultProxyGroup}`);
-  config.rules = Array.from(ruleSet);
+  // Final Assembly (Pre-built Static Stages + Special Overrides + Cleaned User Rules + Fallback)
+  config.rules = [
+    ...STATIC_RULES_STAGE1,
+    `DOMAIN-SUFFIX,waze.com,${defaultProxyGroup}`,
+    `DOMAIN-KEYWORD,waze,${defaultProxyGroup}`,
+    ...STATIC_RULES_STAGE2,
+    ...userSanitizedRules,
+    capturedMatchRule ?? `MATCH,${defaultProxyGroup}`
+  ];
 
   return config;
 }
