@@ -8,7 +8,7 @@
 [![Edge CDN Active](https://img.shields.io/badge/CDN-jsDelivr%20Purged-orange?style=flat-square&logo=jsdelivr&logoColor=white)](https://fastly.jsdelivr.net/gh/Erfan4700/iran-routing-rules@release/)
 [![Engine Architecture](https://img.shields.io/badge/Architecture-Strict%20Non--IR%20Direct-blueviolet?style=flat-square&logo=checkmarx&logoColor=white)](#-the-strict-non-ir-direct-architecture)
 [![Coverage](https://img.shields.io/badge/Coverage-Enamad%20%7C%20CF--Web%20%7C%20Mirava%20%7C%20TCI-success?style=flat-square&logo=internet-explorer&logoColor=white)](#-telemetry-sources--upstream-feeds)
-[![HaGeZi Integrated](https://img.shields.io/badge/Threat%20Intel-HaGeZi%20MRS%20Native-purple?style=flat-square&logo=adguard&logoColor=white)](https://github.com/Erfan4700/HaGeZi_BlockLists_mrs_format)
+[![HaGeZi Integrated](https://img.shields.io/badge/Threat%20Intel-HaGeZi%20MRS%20Native-purple?style=flat-square&logo=adguard&logoColor=white)](https://github.com/Erfan4700/HaGeZi_BlockLists_Compiled_format)
 [![Security Specs](https://img.shields.io/badge/Security-Phishing%20%7C%20AdBlock%20%7C%20Zero--Trust-emerald?style=flat-square&logo=shield&logoColor=white)](#-cyber-threat-mitigation--whitelist-integrity)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
