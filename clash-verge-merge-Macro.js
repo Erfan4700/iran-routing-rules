@@ -38,8 +38,8 @@ const ENABLE_IRAN_DIRECT = true;         // Master Switch for Domestic Direct Ro
 const ENABLE_IRAN_SECURITY = true;       // Iran Phishing, Fake Gateways & Threat IPs
 const ENABLE_IRAN_ADS = true;            // Iran Ads & Trackers
 
-const SECURITY_INTERVAL = 36 * 3600;     // 36 Hours update interval for macro threat feeds
-const STANDARD_INTERVAL = 72 * 3600;     // 72 Hours update interval for general content & tracker rules
+const SECURITY_INTERVAL = 48 * 3600;     // n Hours update interval for macro threat feeds
+const STANDARD_INTERVAL = 96 * 3600;     // n Hours update interval for general content & tracker rules
 
 // ==============================================================================
 // 1. DATASETS & STATIC ASSETS (PRE-LOADED IN ENGINE MEMORY)
