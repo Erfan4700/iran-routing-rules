@@ -26,7 +26,7 @@ This repository acts as an authoritative, single source of truth, compiling unif
 
 | Platform / Client Application | Target Core Engine | Native Binary Rule-Set | Classical / Text Source |
 | :--- | :--- | :---: | :---: |
-| **Clash Verge Rev, Mihomo Party, FlClash** | Mihomo | **`.mrs`** (Radix Tree) | `.txt` / `.yaml` |
+| **Clash Verge Rev, Mihomo Party, FlClash, Clash Nyanpasu** | Mihomo | **`.mrs`** (Radix Tree) | `.txt` / `.yaml` |
 | **Hiddify, NekoBox, Karing, Box4Proxy** | Sing-box Core (v1.8+) | **`.srs`** (Compiled Protobuf) | `.json` (Headless Rule-Set) |
 | **Marzban, 3X-UI, v2rayN, v2rayNG, V2Box** | Xray-core / V2Fly Core | **`geosite.dat` / `geoip.dat` / `iran.dat`** | — |
 | **Shadowrocket, Surge, Loon, Stash, Egern** | Surge Rule Engine | — | **`.list`** |
