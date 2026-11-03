@@ -471,7 +471,7 @@ function main(config, profileName) {
   dns["fake-ip-filter"] = BASE_FAKE_IP_FILTER;
 
   dns.nameserver = DOH_ENDPOINTS.map(url => `${url}#${defaultProxyGroup}`);
-  dns["nameserver-policy"] = Object.assign({}, BASE_NS_POLICY, dns["nameserver-policy"]);
+  dns["nameserver-policy"] = { ...dns["nameserver-policy"], ...BASE_NS_POLICY };
 
   // Merge Rule Providers (Instant clone of pre-compiled dictionary)
   config["rule-providers"] = Object.assign({}, BASE_RULE_PROVIDERS, config["rule-providers"]);
