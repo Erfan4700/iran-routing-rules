@@ -111,6 +111,7 @@ const FROZEN_HOSTS = Object.freeze({
 });
 
 const PURE_DOMESTIC_RESOLVERS = Object.freeze([
+  "system",
   "193.186.32.32",
   "217.218.127.127",
   "217.218.155.155"
@@ -320,10 +321,7 @@ if (ENABLE_IRAN_DIRECT) {
   for (let i = 0; i < IRAN_DOMAINS.length; i++) {
     const [cond, name] = IRAN_DOMAINS[i];
     if (!cond) continue;
-    const ruleTag = `rule-set:${name}`;
-    BASE_SNIFFER_SKIP_DOMAINS.push(ruleTag);
-    BASE_FAKE_IP_FILTER.push(ruleTag);
-    BASE_NS_POLICY[ruleTag] = PURE_DOMESTIC_RESOLVERS;
+    // Clean registration without interfering with Fake-IP or Sniffer
     BASE_RULE_PROVIDERS[name] = makeProvider(name, "domain", "mrs", `${IRAN_RULES_BASE_URL}${name}.mrs`, STANDARD_INTERVAL);
     STATIC_RULES_STAGE2.push(`RULE-SET,${name},DIRECT`);
   }
