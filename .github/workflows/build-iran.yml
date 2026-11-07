@@ -67,9 +67,8 @@ jobs:
 
             curl -sSL "$SINGBOX_URL" -o sing-box.tar.gz
             tar -xzf sing-box.tar.gz
-            mv sing-box-*/sing-box ./sing-box
-            chmod +x sing-box
-            sudo mv sing-box /usr/local/bin/
+            find . -maxdepth 2 -type f -name sing-box -exec chmod +x {} \; -exec sudo mv {} /usr/local/bin/ \;
+            rm -f sing-box.tar.gz
           ) &
 
           wait
@@ -77,7 +76,7 @@ jobs:
           mihomo -v
           sing-box version
 
-      - name: Run Clean Hybrid Engine (Macro & Modular)
+      - name: Run Clean Hybrid Engine (Macro, Modular & Geo-Check)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -106,6 +105,15 @@ jobs:
 
           echo "=== Cleaning Temporary Builder Cache ==="
           rm -rf dlc-builder geoip-builder output_mrs/v2ray_geoip_config.json output_mrs/.tld_cache
+
+      - name: Finalize SHA-256 Checksums (Including DAT files)
+        run: |
+          echo "=== Regenerating full sha256sum.txt including compiled DAT files ==="
+          cd output_mrs
+          rm -f sha256sum.txt
+          sha256sum * > sha256sum.txt
+          cd ..
+          cp output_mrs/sha256sum.txt output_text/sha256sum.txt
 
       - name: Commit & Push Updated Baseline (Layer 2 Resilience)
         run: |
@@ -143,13 +151,39 @@ jobs:
           RELEASE_TAG="latest"
           NOW=$(date -u +'%Y-%m-%d %H:%M UTC')
           RELEASE_TITLE="Universal Iran Ruleset Suite (Updated: $NOW)"
-          RELEASE_NOTES="Automated Clean Build (Strict Non-IR Direct Engine & Zero Overlap):
-          ★ Integrated Sources: Enamad Mirror (~13MB), CF-Web, V2Fly Community, Mirava, TCI ADSL
-          ★ Macro All-In-One: iran-all-domains (Pure Non-IR), iran-all-ip, iran-all-ads, iran-all-security, iran-all-apps
-          ★ Dynamic Exceptions: iran-app-exceptions (Snapp, Tapsi, Metrix & Analytics bypass)
-          ★ Modular Disjoint: iran-modular-banking, iran-modular-gov, iran-modular-media, iran-modular-gaming, iran-modular-download, iran-modular-isp, iran-modular-cloud, iran-modular-gambling, iran-modular-other
-          ★ Standard Formats: Mihomo (.mrs), Sing-box (.srs / .json), V2Ray/Xray (.dat), Surge (.list), Classical (.yaml / .txt)
-          Last synced: $NOW"
+
+          # Extract Dynamic Analytics from release_stats.json
+          DOMESTIC_COUNT="N/A"
+          ABROAD_COUNT="N/A"
+          CIDR_COUNT="N/A"
+          THREAT_COUNT="N/A"
+          ADS_COUNT="N/A"
+
+          if [ -f "release_stats.json" ]; then
+            DOMESTIC_COUNT=$(jq -r '.domestic_direct_domains // "N/A"' release_stats.json)
+            ABROAD_COUNT=$(jq -r '.abroad_hosted_domains // "N/A"' release_stats.json)
+            CIDR_COUNT=$(jq -r '.total_cidrs // "N/A"' release_stats.json)
+            THREAT_COUNT=$(jq -r '.threats // "N/A"' release_stats.json)
+            ADS_COUNT=$(jq -r '.ads // "N/A"' release_stats.json)
+          fi
+
+          RELEASE_NOTES="### 🚀 Universal Iran Ruleset Suite — Clean Architecture
+          **Automated Build & Geo-Verified Delivery** ($NOW)
+
+          #### 📊 Live Dataset Metrics:
+          * 🟢 **Pure Domestic Direct Domains:** \`$DOMESTIC_COUNT\` (Zero Overlap & Non-IR)
+          * 🌐 **Abroad-Hosted (Isolated / 403-Safe):** \`$ABROAD_COUNT\`
+          * 📡 **Domestic IP Subnets (Collapsed CIDRs):** \`$CIDR_COUNT\`
+          * 🛡️ **Domestic Security & Phishing Blocked:** \`$THREAT_COUNT\`
+          * 🚫 **Persian Ads & Trackers Isolated:** \`$ADS_COUNT\`
+
+          #### 📦 Deliverables & Platforms:
+          * **Mihomo / Clash:** Binary Rulesets (\`.mrs\`), Classical YAML (\`.yaml\`), Raw Lists (\`.txt\`)
+          * **Sing-box:** Binary Rule Sets (\`.srs\`), JSON Headless Rules (\`.json\`)
+          * **V2Ray / Xray:** Full Binary Databases (\`geosite.dat\`, \`geoip.dat\`, \`iran.dat\`)
+          * **Surge / QuantumultX:** Classical Rule Sets (\`.list\`)
+
+          *Integrity Verified: All assets signed with \`sha256sum.txt\`.*"
 
           if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
             echo "[-] Deleting old rolling release metadata..."
