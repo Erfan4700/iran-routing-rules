@@ -201,15 +201,19 @@ def partition_by_hosting(domains: Set[str], ip_matcher: IranIPMatcher, max_worke
 
     print(f"  [*] Executing Geo-Cross Check & Liveness for {len(domains)} domains...")
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(check_domain, d) for d in domains]
+        futures = {executor.submit(check_domain, d): d for d in domains}
         for f in as_completed(futures):
-            d, is_alive, is_domestic = f.result()
-            if not is_alive:
+            d = futures[f]
+            try:
+                _, is_alive, is_domestic = f.result(timeout=2.5)
+                if not is_alive:
+                    continue
+                if is_domestic or is_whitelisted(d):
+                    domestic_domains.add(d)
+                else:
+                    abroad_domains.add(d)
+            except Exception:
                 continue
-            if is_domestic or is_whitelisted(d):
-                domestic_domains.add(d)
-            else:
-                abroad_domains.add(d)
 
     return domestic_domains, abroad_domains
 
