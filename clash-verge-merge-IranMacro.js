@@ -101,6 +101,7 @@ const FROZEN_HOSTS = Object.freeze({
 });
 
 const PURE_DOMESTIC_RESOLVERS = Object.freeze([
+  "system",
   "193.186.32.32",
   "217.218.127.127",
   "217.218.155.155"
@@ -298,11 +299,6 @@ STATIC_RULES_STAGE2.push("DOMAIN-SUFFIX,ir,DIRECT");
 
 // 10. Iran Macro Direct & Abroad Routing
 if (ENABLE_IRAN_DIRECT) {
-  const iranAllTag = "rule-set:iran-all-domains";
-  BASE_SNIFFER_SKIP_DOMAINS.push(iranAllTag);
-  BASE_FAKE_IP_FILTER.splice(1, 0, iranAllTag);
-  BASE_NS_POLICY[iranAllTag] = PURE_DOMESTIC_RESOLVERS;
-
   BASE_RULE_PROVIDERS["iran-all-apps"] = makeProvider("iran-all-apps", "classical", "text", `${IRAN_RULES_BASE_URL}iran-all-apps.txt`, STANDARD_INTERVAL);
   BASE_RULE_PROVIDERS["iran-all-domains"] = makeProvider("iran-all-domains", "domain", "mrs", `${IRAN_RULES_BASE_URL}iran-all-domains.mrs`, STANDARD_INTERVAL);
   BASE_RULE_PROVIDERS["iran-all-ip"] = makeProvider("iran-all-ip", "ipcidr", "mrs", `${IRAN_RULES_BASE_URL}iran-all-ip.mrs`, STANDARD_INTERVAL);
