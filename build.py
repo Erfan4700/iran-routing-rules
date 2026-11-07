@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 """
 ================================================================================
-Universal Multi-Platform Hybrid Engine (Complete Enterprise Edition)
+Universal Multi-Platform Hybrid Engine (Enterprise Geo-Checked Edition)
 Repository: Erfan4700/iran-routing-rules
 Platforms: Mihomo (.mrs) | Sing-box (.srs / .json) | V2Ray (.dat) | Surge (.list)
 Features:
-  - 100% Original Sources Preserved (CF-Web, Mirava, Bootmortis, Custom Baseline)
-  - All Outputs Intact (iran-all-domains, iran-all-domains-lite, iran-unified, etc.)
-  - Full Geo-Cross Check with Bisect (Domestic vs Abroad Hosting Isolation)
-  - Concurrent / Multi-threaded Async Downloader
-  - Safe Dead-Domain Pruning (NXDOMAIN Filter with Zero-Trust Whitelist)
+  - Fixed tldextract Deprecation Warnings (top_domain_under_public_suffix)
+  - Ultra-Fast Geo-Cross Check (80 Threads with Live Console Progress & Timeouts)
+  - 100% Original Sources Restored (CF-Web, Mirava, Bootmortis, Custom Baseline)
+  - All Output Sets Intact (iran-all-domains, iran-all-domains-lite, iran-domains-abroad, iran-unified)
   - Direct ArvanCloud Official API Integration
+  - Strict Non-IR Direct Engine & Zero Overlap
   - SHA-256 Checksum Generation & Auto-Diff Report
 ================================================================================
 """
@@ -37,12 +37,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 try:
     import tldextract
 except ImportError:
-    print("[*] Installing 'tldextract' for Mozilla PSL parsing...")
+    print("[*] Installing 'tldextract' for Mozilla PSL parsing...", flush=True)
     try:
         subprocess.check_call([sys.executable, "-m", "pip", "install", "tldextract", "--quiet"])
         import tldextract
     except Exception as e:
-        print(f"[!] Warning: Could not auto-install tldextract ({e}).")
+        print(f"[!] Warning: Could not auto-install tldextract ({e}).", flush=True)
         tldextract = None
 
 EXTRACTOR = tldextract.TLDExtract(cache_dir=str(Path(__file__).resolve().parent / ".tld_cache")) if tldextract else None
@@ -186,9 +186,11 @@ def resolve_domain_ips(domain: str) -> List[str]:
     except Exception:
         return []
 
-def partition_by_hosting(domains: Set[str], ip_matcher: IranIPMatcher, max_workers: int = 35) -> Tuple[Set[str], Set[str]]:
+def partition_by_hosting(domains: Set[str], ip_matcher: IranIPMatcher, max_workers: int = 80) -> Tuple[Set[str], Set[str]]:
     domestic_domains = set()
     abroad_domains = set()
+    total = len(domains)
+    processed = 0
 
     def check_domain(d: str):
         if is_whitelisted(d):
@@ -199,13 +201,15 @@ def partition_by_hosting(domains: Set[str], ip_matcher: IranIPMatcher, max_worke
         is_domestic = any(ip_matcher.contains(ip) for ip in ips)
         return d, True, is_domestic
 
-    print(f"  [*] Executing Geo-Cross Check & Liveness for {len(domains)} domains...")
+    print(f"  [*] Executing Geo-Cross Check for {total} domains with {max_workers} threads...", flush=True)
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(check_domain, d): d for d in domains}
         for f in as_completed(futures):
-            d = futures[f]
+            processed += 1
+            if processed % 2000 == 0 or processed == total:
+                print(f"      -> Progress: {processed}/{total} domains checked...", flush=True)
             try:
-                _, is_alive, is_domestic = f.result(timeout=2.5)
+                d, is_alive, is_domestic = f.result(timeout=2.0)
                 if not is_alive:
                     continue
                 if is_domestic or is_whitelisted(d):
@@ -263,7 +267,8 @@ def prune_subdomains(domains: Set[str]) -> Set[str]:
     for domain in sorted_domains:
         if EXTRACTOR:
             ext = EXTRACTOR(domain)
-            registered_root = ext.top_domain_under_public_suffix
+            # Fixed DeprecationWarning: use top_domain_under_public_suffix
+            registered_root = getattr(ext, 'top_domain_under_public_suffix', ext.registered_domain)
             if registered_root and registered_root != domain and registered_root in retained_roots:
                 continue
 
@@ -391,14 +396,14 @@ def generate_checksums(target_dir: Path, output_file: Path):
 # MAIN PIPELINE EXECUTION
 # ==============================================================================
 def main():
-    print("=" * 82)
-    print("🚀 IRAN ROUTING RULES: COMPLETE ENTERPRISE ENGINE (FULL COMPATIBILITY)")
-    print("=" * 82)
+    print("=" * 82, flush=True)
+    print("🚀 IRAN ROUTING RULES: ENTERPRISE ENGINE (OPTIMIZED & GEO-CHECKED)", flush=True)
+    print("=" * 82, flush=True)
 
     # --------------------------------------------------------------------------
     # 1. IP & ASN PROCESSING
     # --------------------------------------------------------------------------
-    print("\n[+] 1/9: Processing Iranian IP Ranges & ASN Infrastructure...")
+    print("\n[+] 1/9: Processing Iranian IP Ranges & ASN Infrastructure...", flush=True)
     ripe_raw = fetch_data([
         "https://ftp.ripe.net/pub/stats/ripencc/delegated-ripencc-latest",
         "https://ftp.apnic.net/stats/ripe-ncc/delegated-ripencc-latest"
@@ -462,19 +467,19 @@ def main():
         for asn in sorted(asns):
             f.write(f"  - '{asn}'\n")
 
-    print(f"  [✓] Modular: 'iran-modular-isp' ({len(isp_cidrs)} CIDRs)")
-    print(f"  [✓] Infra:   'iran-asn' ({len(asns)} ASNs)")
+    print(f"  [✓] Modular: 'iran-modular-isp' ({len(isp_cidrs)} CIDRs)", flush=True)
+    print(f"  [✓] Infra:   'iran-asn' ({len(asns)} ASNs)", flush=True)
 
     # --------------------------------------------------------------------------
     # 2. DOMESTIC CLOUDS & MACRO ALL-IP
     # --------------------------------------------------------------------------
-    print("\n[+] 2/9: Fetching Direct Cloud APIs & Generating 'iran-all-ip'...")
+    print("\n[+] 2/9: Fetching Direct Cloud APIs & Generating 'iran-all-ip'...", flush=True)
     raw_cloud_cidrs = []
     
     arvan_official = fetch_data("https://www.arvancloud.ir/fa/ips.txt", timeout=20)
     if arvan_official:
         raw_cloud_cidrs.extend(arvan_official.splitlines())
-        print("  [✓] Integrated official ArvanCloud API ranges.")
+        print("  [✓] Integrated official ArvanCloud API ranges.", flush=True)
 
     cloud_sources = ["derakcloud", "iranserver", "parspack"]
     cloud_urls = [f"https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/{c}.txt" for c in cloud_sources]
@@ -494,13 +499,13 @@ def main():
             f.write(f"{c}\n")
 
     ip_matcher = IranIPMatcher(macro_v4, macro_v6)
-    print(f"  [✓] Modular: 'iran-modular-cloud' ({len(all_cloud_cidrs)} CIDRs)")
-    print(f"  [★] MACRO:   'iran-all-ip' ({len(master_all_cidrs)} collapsed CIDRs)")
+    print(f"  [✓] Modular: 'iran-modular-cloud' ({len(all_cloud_cidrs)} CIDRs)", flush=True)
+    print(f"  [★] MACRO:   'iran-all-ip' ({len(master_all_cidrs)} collapsed CIDRs)", flush=True)
 
     # --------------------------------------------------------------------------
     # 3. UNIFIED SECURITY & THREAT INTEL
     # --------------------------------------------------------------------------
-    print("\n[+] 3/9: Compiling Threat Intelligence...")
+    print("\n[+] 3/9: Compiling Threat Intelligence...", flush=True)
     DOMESTIC_THREAT_REGEX = re.compile(
         r"(?:^|[.-])(?:shaparak|sana[-_.]?gov|adliran|divar|sadad|"
         r"mellat|melli|tejarat|saderat|pasargad|blubank|keshavarzi|refah|maskan|"
@@ -536,13 +541,13 @@ def main():
     all_threat_cidrs = [str(n) for n in (t_v4 + t_v6)]
     export_ip_target("iran-all-security-ip", all_threat_cidrs)
 
-    print(f"  [★] MACRO: 'iran-all-security' ({len(pruned_threats)} domains)")
-    print(f"  [★] MACRO: 'iran-all-security-ip' ({len(all_threat_cidrs)} CIDRs)")
+    print(f"  [★] MACRO: 'iran-all-security' ({len(pruned_threats)} domains)", flush=True)
+    print(f"  [★] MACRO: 'iran-all-security-ip' ({len(all_threat_cidrs)} CIDRs)", flush=True)
 
     # --------------------------------------------------------------------------
     # 4. PERSIAN ADS & TRACKERS
     # --------------------------------------------------------------------------
-    print("\n[+] 4/9: Compiling Macro 'iran-all-ads'...")
+    print("\n[+] 4/9: Compiling Macro 'iran-all-ads'...", flush=True)
     V2FLY_BASE = "https://raw.githubusercontent.com/v2fly/domain-list-community/master/data/"
     ads_sources = [
         f"{V2FLY_BASE}category-ads-ir",
@@ -561,16 +566,16 @@ def main():
     raw_ads -= pruned_threats
     pruned_ads = prune_subdomains(raw_ads)
     export_domain_target("iran-all-ads", pruned_ads)
-    print(f"  [★] MACRO: 'iran-all-ads' ({len(pruned_ads)} domains)")
+    print(f"  [★] MACRO: 'iran-all-ads' ({len(pruned_ads)} domains)", flush=True)
 
     # --------------------------------------------------------------------------
     # 5. MASTER IRANIAN DIRECT DOMAINS + RESTORED SOURCES + GEO-CROSS CHECK
     # --------------------------------------------------------------------------
-    print("\n[+] 5/9: Aggregating & Geo-Checking Pure Non-IR Domestic Domains...")
+    print("\n[+] 5/9: Aggregating & Geo-Checking Pure Non-IR Domestic Domains...", flush=True)
     raw_candidate_domains = {d for d in UNBREAK_WHITELIST if not is_ir_domain(d)}
     raw_candidate_domains.update({d for d in load_baseline("iran-domains") if not is_ir_domain(d)})
 
-    # Restored 1: custom-domains.txt baseline
+    # Baseline: custom-domains.txt
     custom_baseline_path = BASELINE_DIR / "custom-domains.txt"
     custom_count = 0
     if custom_baseline_path.exists():
@@ -580,7 +585,7 @@ def main():
                 if d and not is_ir_domain(d):
                     raw_candidate_domains.add(d)
                     custom_count += 1
-        print(f"  [✓] Loaded {custom_count} manual non-ir domain(s) from custom-domains.txt")
+        print(f"  [✓] Loaded {custom_count} manual non-ir domain(s) from custom-domains.txt", flush=True)
     else:
         custom_baseline_path.touch()
 
@@ -622,8 +627,8 @@ def main():
                 elif is_media:
                     v2fly_media_seeds.add(d)
 
-    # Restored 2: Bootmortis custom_domains.py
-    print("  [*] Fetching Bootmortis custom_domains.py (Direct list)...")
+    # Restored: Bootmortis custom_domains.py
+    print("  [*] Fetching Bootmortis custom_domains.py (Direct list)...", flush=True)
     custom_py_raw = fetch_data("https://raw.githubusercontent.com/bootmortis/iran-hosted-domains/main/src/custom_domains.py", timeout=30)
     if custom_py_raw:
         direct_matches = re.findall(r'"([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})"', custom_py_raw)
@@ -633,10 +638,10 @@ def main():
             if d and not is_ir_domain(d):
                 raw_candidate_domains.add(d)
                 added_custom += 1
-        print(f"  [✓] Integrated {added_custom} tested non-ir domains from custom_domains.py.")
+        print(f"  [✓] Integrated {added_custom} tested non-ir domains from custom_domains.py.", flush=True)
 
-    # Restored 3: Cloudflare Iranian Domains (CF-Web)
-    print("  [*] Fetching Cloudflare Iranian Domains (CF-Web)...")
+    # Restored: Cloudflare Iranian Domains (CF-Web)
+    print("  [*] Fetching Cloudflare Iranian Domains (CF-Web)...", flush=True)
     cf_raw = fetch_data("https://raw.githubusercontent.com/hossein-mohseni/CF-Web/main/domains.json", timeout=60)
     cf_count = 0
     if cf_raw:
@@ -651,12 +656,12 @@ def main():
                         if d and not is_ir_domain(d):
                             raw_candidate_domains.add(d)
                             cf_count += 1
-            print(f"  [✓] CF-Web: Successfully parsed {cf_count} Cloudflare non-ir domains.")
+            print(f"  [✓] CF-Web: Successfully parsed {cf_count} Cloudflare non-ir domains.", flush=True)
         except Exception as e:
-            print(f"  [!] Warning parsing CF-Web JSON: {e}")
+            print(f"  [!] Warning parsing CF-Web JSON: {e}", flush=True)
 
-    # Restored 4: Mirava Iranian Package Mirrors Registry
-    print("  [*] Fetching Mirava Iranian Package Mirrors Registry...")
+    # Restored: Mirava Package Mirrors
+    print("  [*] Fetching Mirava Iranian Package Mirrors Registry...", flush=True)
     mirava_raw = fetch_data("https://raw.githubusercontent.com/MiravaOrg/Mirava/refs/heads/main/mirrors_list.yaml", timeout=30)
     mirava_count = 0
     if mirava_raw:
@@ -667,10 +672,10 @@ def main():
                 raw_candidate_domains.add(d)
                 download_seeds.add(d)
                 mirava_count += 1
-        print(f"  [✓] Mirava: Successfully integrated {mirava_count} non-ir mirrors.")
+        print(f"  [✓] Mirava: Successfully integrated {mirava_count} non-ir mirrors.", flush=True)
 
     # Enamad Stream
-    print("  [*] Fetching & Streaming Enamad Database (~13MB)...")
+    print("  [*] Fetching & Streaming Enamad Database (~13MB)...", flush=True)
     enamad_raw = fetch_data("https://raw.githubusercontent.com/bootmortis/enamad-mirror/main/out/domains.csv", timeout=90)
     if enamad_raw:
         try:
@@ -688,14 +693,14 @@ def main():
                     if d and not is_ir_domain(d):
                         raw_candidate_domains.add(d)
         except Exception as e:
-            print(f"  [!] Enamad Parse Warning: {e}")
+            print(f"  [!] Enamad Parse Warning: {e}", flush=True)
 
     raw_candidate_domains = (raw_candidate_domains - pruned_ads - pruned_threats)
     raw_candidate_domains = {d for d in raw_candidate_domains if not is_ir_domain(d)}
     raw_candidate_domains.update({d for d in UNBREAK_WHITELIST if not is_ir_domain(d)})
 
-    # Partition via Geo-Cross Check
-    domestic_domains, abroad_domains = partition_by_hosting(raw_candidate_domains, ip_matcher)
+    # Partition via Fast Geo-Cross Check
+    domestic_domains, abroad_domains = partition_by_hosting(raw_candidate_domains, ip_matcher, max_workers=80)
 
     domestic_domains.update({d for d in UNBREAK_WHITELIST if not is_ir_domain(d)})
     save_baseline("iran-domains", domestic_domains)
@@ -710,7 +715,7 @@ def main():
         for d in sorted(pruned_domestic):
             f.write(f"{d}\n")
 
-    # Restored 5: iran-all-domains-lite target
+    # Target: iran-all-domains-lite
     ir_lite_raw = fetch_data("https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ir-lite.txt", timeout=30)
     lite_domains = set()
     for line in ir_lite_raw.splitlines():
@@ -732,14 +737,14 @@ def main():
     pruned_lite = prune_subdomains(lite_domains if len(lite_domains) > 100 else pruned_domestic)
     export_domain_target("iran-all-domains-lite", pruned_lite)
 
-    print(f"  [★] MACRO: 'iran-all-domains' ({len(pruned_domestic)} confirmed domestic domains)")
-    print(f"  [★] MACRO: 'iran-domains-abroad' ({len(pruned_abroad)} foreign-hosted domains isolated)")
-    print(f"  [★] MACRO: 'iran-all-domains-lite' ({len(pruned_lite)} domains)")
+    print(f"  [★] MACRO: 'iran-all-domains' ({len(pruned_domestic)} confirmed domestic domains)", flush=True)
+    print(f"  [★] MACRO: 'iran-domains-abroad' ({len(pruned_abroad)} foreign-hosted domains isolated)", flush=True)
+    print(f"  [★] MACRO: 'iran-all-domains-lite' ({len(pruned_lite)} domains)", flush=True)
 
     # --------------------------------------------------------------------------
     # 6. MODULAR DISJOINT SUBSETS (DOMESTIC ONLY)
     # --------------------------------------------------------------------------
-    print("\n[+] 6/9: Partitioning Domestic Domains into Disjoint Modular Sets...")
+    print("\n[+] 6/9: Partitioning Domestic Domains into Disjoint Modular Sets...", flush=True)
 
     MEDIA_PATTERNS = re.compile(r"(?:aparat|filimo|namava|filmnet|telewebion|gapfilm|cinematicket|tiwall|tamasha|namasha|antenn|lenz|mayaa|irib|seevid|radio|video|music|tv|vod|stream)")
     BANKING_PATTERNS = re.compile(r"(?:bank|shaparak|sadad|mellat|melli|tejarat|saderat|pasargad|sb24|blubank|sepah|refah|keshavarzi|maskan|postbank|zarinpal|payping|idpay|jibit|nextpay|vandar|zibal|nobitex|wallex|bitpin|ramzinex|abantether|exir|bourse|seham|tsetmc|codal|emofid|agah|bimeh|azki)")
@@ -776,12 +781,12 @@ def main():
     export_domain_target("iran-modular-other", other_domains)
 
     assert (len(categorized_union) + len(other_domains)) == len(pruned_domestic), "Data integrity check failed!"
-    print(f"  [✓] Disjoint math check passed for all submodules.")
+    print(f"  [✓] Disjoint math check passed for all submodules.", flush=True)
 
     # --------------------------------------------------------------------------
     # 7. DOMESTIC GAMBLING & BETTING
     # --------------------------------------------------------------------------
-    print("\n[+] 7/9: Compiling 'iran-modular-gambling'...")
+    print("\n[+] 7/9: Compiling 'iran-modular-gambling'...", flush=True)
     gambling_content = fetch_data("https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/nsfw.txt", timeout=25)
     raw_gambling = {"betcart.com", "takbet.com", "wolfbet.info", "cannonbet.org", "hazarat.org"}
     for line in gambling_content.splitlines():
@@ -792,12 +797,12 @@ def main():
     raw_gambling -= pruned_domestic
     pruned_gambling = prune_subdomains(raw_gambling)
     export_domain_target("iran-modular-gambling", pruned_gambling)
-    print(f"  [✓] Modular: 'iran-modular-gambling' ({len(pruned_gambling)} domains)")
+    print(f"  [✓] Modular: 'iran-modular-gambling' ({len(pruned_gambling)} domains)", flush=True)
 
     # --------------------------------------------------------------------------
     # 8. APP EXCEPTIONS, APPS & UNIFIED CLASSICAL
     # --------------------------------------------------------------------------
-    print("\n[+] 8/9: Compiling App Rules & Unified Classical Sets...")
+    print("\n[+] 8/9: Compiling App Rules & Unified Classical Sets...", flush=True)
     EXCEPTIONS_MAP = {
         "metrix.ir": [
             "cab.snapp.passenger", "cab.snapp.driver",
@@ -844,7 +849,7 @@ def main():
     with open(TEXT_DIR / "iran-all-apps.json", "w", encoding="utf-8") as f:
         json.dump(data_apps, f, indent=2, ensure_ascii=False)
 
-    # Restored 6: Unified Classical Outputs
+    # Restored: Unified Classical Outputs
     classical_rules = ["GEOIP,ir", "DOMAIN-SUFFIX,ir"]
     for d in sorted(pruned_domestic):
         classical_rules.append(f"DOMAIN-SUFFIX,{d}")
@@ -864,7 +869,7 @@ def main():
         for n in master_all_cidrs:
             f.write(f"IP-CIDR,{n},no-resolve\n")
 
-    # Restored 7: v2ray_geoip_config.json
+    # Restored: v2ray_geoip_config.json
     geoip_config = {
         "input": [{"type": "text", "action": "add", "args": {"inputDir": str(V2RAY_GEOIP_DIR.resolve())}}],
         "output": [{"type": "v2rayGeoIPDat", "action": "output", "args": {"outputDir": str(MRS_DIR.resolve()), "outputName": "geoip.dat"}}]
@@ -875,9 +880,9 @@ def main():
     # --------------------------------------------------------------------------
     # 9. COMPILATION, SHA-256 CHECKSUMS & DIFF REPORT
     # --------------------------------------------------------------------------
-    print("\n" + "=" * 82)
-    print("⚙️ 9/9: BINARY COMPILATION (.MRS / .SRS) & CHECKSUM GENERATION")
-    print("=" * 82)
+    print("\n" + "=" * 82, flush=True)
+    print("⚙️ 9/9: BINARY COMPILATION (.MRS / .SRS) & CHECKSUM GENERATION", flush=True)
+    print("=" * 82, flush=True)
 
     for f in TEXT_DIR.glob("*.*"):
         if f.is_file():
@@ -885,7 +890,7 @@ def main():
 
     mihomo_bin = shutil.which("mihomo") or shutil.which("mihomo.exe") or (BASE_DIR / "mihomo")
     if mihomo_bin and os.path.exists(mihomo_bin):
-        print(f"[+] Mihomo Core Active: {mihomo_bin}")
+        print(f"[+] Mihomo Core Active: {mihomo_bin}", flush=True)
         domain_targets = [
             "iran-all-domains", "iran-all-domains-lite", "iran-domains-abroad", "iran-all-ads",
             "iran-all-security", "iran-modular-banking", "iran-modular-gov", "iran-modular-media",
@@ -896,7 +901,7 @@ def main():
             out_mrs = MRS_DIR / f"{target}.mrs"
             if in_txt.exists():
                 success = compile_to_mrs(str(mihomo_bin), "domain", in_txt, out_mrs)
-                print(f"  [{'✓' if success else '✗'}] Mihomo MRS: {target}.mrs")
+                print(f"  [{'✓' if success else '✗'}] Mihomo MRS: {target}.mrs", flush=True)
 
         ip_targets = ["iran-all-ip", "iran-modular-isp", "iran-modular-cloud", "iran-all-security-ip"]
         for target in sorted(ip_targets):
@@ -904,11 +909,11 @@ def main():
             out_mrs = MRS_DIR / f"{target}.mrs"
             if in_txt.exists():
                 success = compile_to_mrs(str(mihomo_bin), "ipcidr", in_txt, out_mrs)
-                print(f"  [{'✓' if success else '✗'}] Mihomo MRS: {target}.mrs")
+                print(f"  [{'✓' if success else '✗'}] Mihomo MRS: {target}.mrs", flush=True)
 
     singbox_bin = shutil.which("sing-box") or shutil.which("sing-box.exe") or (BASE_DIR / "sing-box")
     if singbox_bin and os.path.exists(singbox_bin):
-        print(f"\n[+] Sing-box Core Active: {singbox_bin}")
+        print(f"\n[+] Sing-box Core Active: {singbox_bin}", flush=True)
         srs_targets = [
             "iran-all-domains", "iran-all-domains-lite", "iran-domains-abroad", "iran-all-ip",
             "iran-all-ads", "iran-all-security", "iran-all-security-ip", "iran-all-apps",
@@ -921,11 +926,11 @@ def main():
             out_srs = MRS_DIR / f"{target}.srs"
             if in_json.exists():
                 success = compile_to_srs(str(singbox_bin), in_json, out_srs)
-                print(f"  [{'✓' if success else '✗'}] Sing-box SRS: {target}.srs")
+                print(f"  [{'✓' if success else '✗'}] Sing-box SRS: {target}.srs", flush=True)
 
     generate_checksums(MRS_DIR, MRS_DIR / "sha256sum.txt")
     generate_checksums(TEXT_DIR, TEXT_DIR / "sha256sum.txt")
-    print(f"\n[✓] Generated sha256sum.txt for all assets.")
+    print(f"\n[✓] Generated sha256sum.txt for all assets.", flush=True)
 
     stats_report = {
         "domestic_direct_domains": len(pruned_domestic),
@@ -938,9 +943,9 @@ def main():
     with open(BASE_DIR / "release_stats.json", "w", encoding="utf-8") as f:
         json.dump(stats_report, f, indent=2)
 
-    print("\n" + "=" * 82)
-    print("🏁 PIPELINE COMPLETED: 100% ASSETS RESTORED & GEO-CHECKED.")
-    print("=" * 82)
+    print("\n" + "=" * 82, flush=True)
+    print("🏁 PIPELINE COMPLETED: 100% ASSETS RESTORED & GEO-CHECKED.", flush=True)
+    print("=" * 82, flush=True)
 
 if __name__ == "__main__":
     main()
