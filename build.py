@@ -263,7 +263,7 @@ def prune_subdomains(domains: Set[str]) -> Set[str]:
     for domain in sorted_domains:
         if EXTRACTOR:
             ext = EXTRACTOR(domain)
-            registered_root = ext.registered_domain
+            registered_root = ext.top_domain_under_public_suffix
             if registered_root and registered_root != domain and registered_root in retained_roots:
                 continue
 
