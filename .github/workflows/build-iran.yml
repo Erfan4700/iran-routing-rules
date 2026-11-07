@@ -79,6 +79,7 @@ jobs:
       - name: Run Clean Hybrid Engine (Macro, Modular & Geo-Check)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYTHONUNBUFFERED: "1"
         run: |
           python build.py
 
