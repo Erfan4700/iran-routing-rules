@@ -84,6 +84,7 @@ const FROZEN_HOSTS = Object.freeze({
 });
 
 const PURE_DOMESTIC_RESOLVERS = Object.freeze([
+  "system",
   "193.186.32.32",
   "217.218.127.127",
   "217.218.155.155"
@@ -268,28 +269,20 @@ for (let i = 0; i < EMERGENCY_MANUAL_DOMAINS.length; i++) {
 }
 STATIC_RULES_STAGE2.push("DOMAIN-SUFFIX,ir,DIRECT");
 
-// 10. Iran Macro Direct & Abroad Routing
+// 10. Iran Macro Direct Routing
 if (ENABLE_IRAN_DIRECT) {
-  const iranAllTag = "rule-set:iran-all-domains";
-  BASE_SNIFFER_SKIP_DOMAINS.push(iranAllTag);
-  BASE_FAKE_IP_FILTER.splice(1, 0, iranAllTag);
-  BASE_NS_POLICY[iranAllTag] = PURE_DOMESTIC_RESOLVERS;
-
   BASE_RULE_PROVIDERS["iran-all-apps"] = makeProvider("iran-all-apps", "classical", "text", `${IRAN_RULES_BASE_URL}iran-all-apps.txt`, STANDARD_INTERVAL);
   BASE_RULE_PROVIDERS["iran-all-domains"] = makeProvider("iran-all-domains", "domain", "mrs", `${IRAN_RULES_BASE_URL}iran-all-domains.mrs`, STANDARD_INTERVAL);
   BASE_RULE_PROVIDERS["iran-all-ip"] = makeProvider("iran-all-ip", "ipcidr", "mrs", `${IRAN_RULES_BASE_URL}iran-all-ip.mrs`, STANDARD_INTERVAL);
   BASE_RULE_PROVIDERS["iran-asn"] = makeProvider("iran-asn", "classical", "text", `${IRAN_RULES_BASE_URL}iran-asn.txt`, STANDARD_INTERVAL);
 
-  // Register Abroad-Hosted Iranian Services Provider
   if (ENABLE_IRAN_ABROAD) {
     BASE_RULE_PROVIDERS["iran-domains-abroad"] = makeProvider("iran-domains-abroad", "domain", "mrs", `${IRAN_RULES_BASE_URL}iran-domains-abroad.mrs`, STANDARD_INTERVAL);
   }
 
-  // Pre-compile Core Rules
   STATIC_RULES_STAGE2.push(
     "RULE-SET,iran-all-apps,DIRECT,no-resolve",
     "RULE-SET,iran-all-domains,DIRECT",
-    // Bound to IRAN-ABROAD smart group (Defaults to DIRECT, 1-click fallback to Proxy)
     ...(ENABLE_IRAN_ABROAD ? ["RULE-SET,iran-domains-abroad,IRAN-ABROAD"] : []),
     "RULE-SET,iran-all-ip,DIRECT,no-resolve",
     "RULE-SET,iran-asn,DIRECT,no-resolve"
