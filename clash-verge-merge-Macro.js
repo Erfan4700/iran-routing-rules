@@ -33,13 +33,19 @@ const ENABLE_TRACKER_TIKTOK_EXT = false; // Aggressive TikTok tracking (May brea
 // Optional Master Switch (If running on a router with dozens of diverse guest devices):
 const ENABLE_TRACKER_ALL_OEM = false;    // [Macro] Downloads HageziNativeAll (Not recommended for single phones)
 
-// --- IRAN CORE SUITE (Macro All-In-One) ---
-const ENABLE_IRAN_DIRECT = true;         // Master Switch for Domestic Direct Routing
+// --- IRAN CORE SUITE (Macro All-In-One & Geo-Partitioned) ---
+const ENABLE_IRAN_DIRECT = true;         // Master Switch for Domestic Direct Routing (100% Domestic IPs)
+const ENABLE_IRAN_ABROAD = true;         // [Recommended] Iran services hosted abroad (Hetzner/OVH/Cloudflare)
 const ENABLE_IRAN_SECURITY = true;       // Iran Phishing, Fake Gateways & Threat IPs
 const ENABLE_IRAN_ADS = true;            // Iran Ads & Trackers
 
-const SECURITY_INTERVAL = 48 * 3600;     // n Hours update interval for macro threat feeds
-const STANDARD_INTERVAL = 96 * 3600;     // n Hours update interval for general content & tracker rules
+// Specific foreign-hosted Iranian domains that trigger 403 Sanction blocks and MUST use Proxy
+const SANCTIONED_ABROAD_OVERRIDE = Object.freeze([
+  // "sanctioned-service-sample.com",
+]);
+
+const SECURITY_INTERVAL = 72 * 3600;     // n Hours update interval for macro threat feeds
+const STANDARD_INTERVAL = 108 * 3600;     // n Hours update interval for general content & tracker rules
 
 // ==============================================================================
 // 1. DATASETS & STATIC ASSETS (PRE-LOADED IN ENGINE MEMORY)
@@ -140,6 +146,7 @@ function resolvePrimaryProxyGroup(groups) {
 }
 
 // Fast string checker for IP rules (Replaces heavy Go Regex engine checks)
+// Note: Domain rules NEVER need no-resolve because SNI routing matches before DNS.
 function formatUserIpRule(rule) {
   if (rule.indexOf("no-resolve") !== -1) return rule;
   const upper = rule.slice(0, 9).toUpperCase();
@@ -155,8 +162,6 @@ function formatUserIpRule(rule) {
 // ==============================================================================
 // 3. ZERO-COST COMPILATION (MACRO ARCHITECTURE PRE-BUILT AT LOAD TIME)
 // ==============================================================================
-// Note: Constructing macro objects here outside of main() guarantees near-zero RAM
-// allocations and eliminates GC pauses inside the runtime parsing execution.
 
 const BASE_RULE_PROVIDERS = Object.create(null);
 const STATIC_RULES_STAGE1 = []; // Local networks, QUIC, Macro Security, Content, Trackers, Ads
@@ -263,7 +268,7 @@ for (let i = 0; i < EMERGENCY_MANUAL_DOMAINS.length; i++) {
 }
 STATIC_RULES_STAGE2.push("DOMAIN-SUFFIX,ir,DIRECT");
 
-// 10. Iran Macro Direct Routing
+// 10. Iran Macro Direct & Abroad Routing
 if (ENABLE_IRAN_DIRECT) {
   const iranAllTag = "rule-set:iran-all-domains";
   BASE_SNIFFER_SKIP_DOMAINS.push(iranAllTag);
@@ -275,9 +280,17 @@ if (ENABLE_IRAN_DIRECT) {
   BASE_RULE_PROVIDERS["iran-all-ip"] = makeProvider("iran-all-ip", "ipcidr", "mrs", `${IRAN_RULES_BASE_URL}iran-all-ip.mrs`, STANDARD_INTERVAL);
   BASE_RULE_PROVIDERS["iran-asn"] = makeProvider("iran-asn", "classical", "text", `${IRAN_RULES_BASE_URL}iran-asn.txt`, STANDARD_INTERVAL);
 
+  // Register Abroad-Hosted Iranian Services Provider
+  if (ENABLE_IRAN_ABROAD) {
+    BASE_RULE_PROVIDERS["iran-domains-abroad"] = makeProvider("iran-domains-abroad", "domain", "mrs", `${IRAN_RULES_BASE_URL}iran-domains-abroad.mrs`, STANDARD_INTERVAL);
+  }
+
+  // Pre-compile Core Rules
   STATIC_RULES_STAGE2.push(
     "RULE-SET,iran-all-apps,DIRECT,no-resolve",
     "RULE-SET,iran-all-domains,DIRECT",
+    // Bound to IRAN-ABROAD smart group (Defaults to DIRECT, 1-click fallback to Proxy)
+    ...(ENABLE_IRAN_ABROAD ? ["RULE-SET,iran-domains-abroad,IRAN-ABROAD"] : []),
     "RULE-SET,iran-all-ip,DIRECT,no-resolve",
     "RULE-SET,iran-asn,DIRECT,no-resolve"
   );
@@ -303,10 +316,8 @@ function main(config, profileName) {
 
     for (let i = 0, len = raw.length; i < len; i++) {
       const p = raw[i];
-      // Filter out non-functional metadata/informational nodes (traffic balance, expiry, etc.)
       if (!p || !p.name || INFO_NODE_REGEX.test(p.name)) continue;
 
-      // Robust port validation: convert string to integer and ensure a valid port range
       const port = +p.port;
       if (port > 0 && port <= 65535) p.port = port;
 
@@ -322,7 +333,7 @@ function main(config, profileName) {
   }
 
   // --------------------------------------------------------------------------
-  // [FIX 2]: Auto-generate Proxy Groups if the profile input is empty or raw
+  // [FIX 2]: Auto-generate Proxy Groups & Inject IRAN-ABROAD Smart Selector
   // --------------------------------------------------------------------------
   if (!validProxyNames || validProxyNames.length === 0) {
     validProxyNames = ["DIRECT"];
@@ -345,11 +356,23 @@ function main(config, profileName) {
       }
     ];
   } else if (config["proxy-groups"][0]?.proxies?.length === 0) {
-    // If the group exists but contains no proxies, link all validated nodes
     config["proxy-groups"][0].proxies = validProxyNames;
   }
 
   const defaultProxyGroup = resolvePrimaryProxyGroup(config["proxy-groups"]);
+
+  // Inject Dedicated IRAN-ABROAD Group (DIRECT by default, with instant Proxy fallback)
+  if (ENABLE_IRAN_DIRECT && ENABLE_IRAN_ABROAD) {
+    const groups = config["proxy-groups"];
+    const exists = groups.some(g => g && g.name === "IRAN-ABROAD");
+    if (!exists) {
+      groups.push({
+        name: "IRAN-ABROAD",
+        type: "select",
+        proxies: ["DIRECT", defaultProxyGroup]
+      });
+    }
+  }
 
   // Core System Kernel Settings
   config["tcp-concurrent"] = true;
@@ -423,7 +446,7 @@ function main(config, profileName) {
   config["rule-providers"] = Object.assign({}, BASE_RULE_PROVIDERS, config["rule-providers"]);
 
   // --------------------------------------------------------------------------
-  // [FIX 5]: Rapid User Rules Sanitization & Zero-Copy Concatenation
+  // [FIX 5]: Rapid User Rules Sanitization & Zero-Copy Precedence Assembly
   // --------------------------------------------------------------------------
   let capturedMatchRule = null;
   const userSanitizedRules = [];
@@ -455,9 +478,17 @@ function main(config, profileName) {
     }
   }
 
-  // Final Assembly (Pre-built Static Stages + Special Overrides + Cleaned User Rules + Fallback)
+  // Compile Top-Priority Sanction Overrides (Evaluated BEFORE domestic Stage 2)
+  const sanctionOverrideRules = [];
+  for (let i = 0; i < SANCTIONED_ABROAD_OVERRIDE.length; i++) {
+    const d = SANCTIONED_ABROAD_OVERRIDE[i];
+    if (d) sanctionOverrideRules.push(`DOMAIN-SUFFIX,${d},${defaultProxyGroup}`);
+  }
+
+  // Final Assembly: Stage 1 (Security/Ads) -> Sanctions Override -> Waze -> Stage 2 (Direct/Abroad) -> User Rules -> Match Fallback
   config.rules = [
     ...STATIC_RULES_STAGE1,
+    ...sanctionOverrideRules,
     `DOMAIN-SUFFIX,waze.com,${defaultProxyGroup}`,
     `DOMAIN-KEYWORD,waze,${defaultProxyGroup}`,
     ...STATIC_RULES_STAGE2,
