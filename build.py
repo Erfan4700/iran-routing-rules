@@ -6,7 +6,6 @@ Universal Multi-Platform Hybrid Engine (Enterprise Geo-Checked Edition)
 Repository: Erfan4700/iran-routing-rules
 Platforms: Mihomo (.mrs) | Sing-box (.srs / .json) | V2Ray (.dat) | Surge (.list)
 Features:
-  - Fixed tldextract Deprecation Warnings (top_domain_under_public_suffix)
   - Ultra-Fast Geo-Cross Check (80 Threads with Live Console Progress & Timeouts)
   - 100% Original Sources Restored (CF-Web, Mirava, Bootmortis, Custom Baseline)
   - All Output Sets Intact (iran-all-domains, iran-all-domains-lite, iran-domains-abroad, iran-unified)
@@ -268,7 +267,7 @@ def prune_subdomains(domains: Set[str]) -> Set[str]:
         if EXTRACTOR:
             ext = EXTRACTOR(domain)
             # Fixed DeprecationWarning: use top_domain_under_public_suffix
-            registered_root = getattr(ext, 'top_domain_under_public_suffix', ext.registered_domain)
+            registered_root = ext.top_domain_under_public_suffix
             if registered_root and registered_root != domain and registered_root in retained_roots:
                 continue
 
