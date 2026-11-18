@@ -9,6 +9,7 @@ on:
       - main
     paths:
       - 'data/baseline/custom-domains.txt'
+      - 'data/baseline/custom-apps.txt'
       - 'build.py'
 
 permissions:
