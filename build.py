@@ -825,7 +825,27 @@ def main():
         "ir.blu.banking", "com.aparat.android", "org.bale.messenger", "ir.eitaa.messenger"
     }
     GLOBAL_EXCLUDES = {"org.telegram.messenger", "com.whatsapp", "com.instagram.android", "com.google.android.youtube"}
-    WINDOWS_PROCESSES = ["Bale.exe", "Eitaa.exe", "Rubika.exe", "IDMan.exe", "Digikala.exe"]
+    WINDOWS_PROCESSES = {"Bale.exe", "Eitaa.exe", "Rubika.exe", "IDMan.exe", "Digikala.exe"}
+
+    # Baseline: custom-apps.txt
+    custom_apps_path = BASELINE_DIR / "custom-apps.txt"
+    custom_apps_count = 0
+    if custom_apps_path.exists():
+        with open(custom_apps_path, "r", encoding="utf-8") as f:
+            for line in f:
+                raw = line.split("#")[0].strip()
+                if not raw:
+                    continue
+                raw = re.sub(r"^(?:PACKAGE-NAME|PROCESS-NAME),", "", raw, flags=re.IGNORECASE).strip()
+                if raw.lower().endswith(".exe"):
+                    WINDOWS_PROCESSES.add(raw)
+                    custom_apps_count += 1
+                elif re.match(r"^[a-zA-Z][a-zA-Z0-9_]*(?:\.[a-zA-Z0-9_-]+)+$", raw):
+                    compiled_packages.add(raw)
+                    custom_apps_count += 1
+        print(f"  [✓] Loaded {custom_apps_count} custom app(s)/process(es) from custom-apps.txt", flush=True)
+    else:
+        custom_apps_path.touch()
 
     app_sources = [
         "https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/apps.txt",
