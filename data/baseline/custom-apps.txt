@@ -1,5 +1,6 @@
 # بانک‌های دیجیتال و همراه بانک‌ها
 com.bmelat.mobile # بانک دیجیتال دیما (ملت)
+com.tosan.dara.mehriran
 
 
 # Shad.exe
