@@ -162,22 +162,26 @@ const FROZEN_HOSTS = Object.freeze({
 
 const PURE_DOMESTIC_RESOLVERS = Object.freeze([
   "system",
-  "193.186.32.32",
   "217.218.127.127",
-  "217.218.155.155"
+  "217.218.155.155",
+  "185.98.113.113",
+  "185.98.114.114"
 ]);
 
 const UNPOISONED_PROXY_RESOLVERS = Object.freeze([
-  "https://223.5.5.5/dns-query",
-  "223.5.5.5",
-  "119.29.29.29",
-  "193.186.32.32"
+  "system",
+  "217.218.127.127",
+  "217.218.155.155",
+  "185.98.113.113",
+  "185.98.114.114"
 ]);
 
 const HYBRID_BOOTSTRAP_RESOLVERS = Object.freeze([
-  "223.5.5.5",
-  "119.29.29.29",
-  "193.186.32.32"
+  "system",
+  "217.218.127.127",
+  "217.218.155.155",
+  "185.98.113.113",
+  "185.98.114.114"
 ]);
 
 const DOH_ENDPOINTS = Object.freeze([
@@ -601,4 +605,4 @@ function main(config, profileName) {
   ];
 
   return config;
-  }
+}
