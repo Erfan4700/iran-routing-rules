@@ -4,11 +4,12 @@
 ================================================================================
 Universal Multi-Platform Hybrid Engine (Enterprise Geo-Checked Edition)
 Repository: Erfan4700/iran-routing-rules
-Platforms: Mihomo (.mrs) | Sing-box (.srs / .json) | V2Ray (.dat) | Surge (.list)
+Platforms: Mihomo (.mrs) | Sing-box (.srs / .json) | V2Ray (.dat) | Surge/Surfboard (.list)
 Features:
   - Ultra-Fast Geo-Cross Check (80 Threads with Live Console Progress & Timeouts)
   - 100% Original Sources Restored (CF-Web, Mirava, Bootmortis, Custom Baseline)
   - All Output Sets Intact (iran-all-domains, iran-all-domains-lite, iran-domains-abroad, iran-unified)
+  - Fixed Mihomo PROCESS-NAME support & Sing-box OR-logic for iran-all-apps
   - Direct ArvanCloud Official API Integration
   - Strict Non-IR Direct Engine & Zero Overlap
   - SHA-256 Checksum Generation & Auto-Diff Report
@@ -80,8 +81,8 @@ UNBREAK_WHITELIST = {
 
 # Domains that must NEVER be direct (Proxy-required, broken, or international CDNs)
 SAFETY_EXCLUDE_EXACT = {
-    "eset.com", "github.com", "github.io", "githubusercontent.com", "glitch.me", 
-    "googleapis.com", "gvt1.com", "radiojavan.com", "ubuntu.com", "wordpress.com", 
+    "eset.com", "github.com", "github.io", "githubusercontent.com", "glitch.me",
+    "googleapis.com", "gvt1.com", "radiojavan.com", "ubuntu.com", "wordpress.com",
     "animelist.ir", "gamepass.ir"
 }
 SAFETY_EXCLUDE_CONTAIN = ("google.com", "ooklaserver.net", "cloudflare.com")
@@ -266,7 +267,6 @@ def prune_subdomains(domains: Set[str]) -> Set[str]:
     for domain in sorted_domains:
         if EXTRACTOR:
             ext = EXTRACTOR(domain)
-            # Fixed DeprecationWarning: use top_domain_under_public_suffix
             registered_root = ext.top_domain_under_public_suffix
             if registered_root and registered_root != domain and registered_root in retained_roots:
                 continue
@@ -474,7 +474,7 @@ def main():
     # --------------------------------------------------------------------------
     print("\n[+] 2/9: Fetching Direct Cloud APIs & Generating 'iran-all-ip'...", flush=True)
     raw_cloud_cidrs = []
-    
+
     arvan_official = fetch_data("https://www.arvancloud.ir/fa/ips.txt", timeout=20)
     if arvan_official:
         raw_cloud_cidrs.extend(arvan_official.splitlines())
@@ -802,10 +802,13 @@ def main():
     # 8. APP EXCEPTIONS, APPS & UNIFIED CLASSICAL
     # --------------------------------------------------------------------------
     print("\n[+] 8/9: Compiling App Rules & Unified Classical Sets...", flush=True)
+
+    # Mihomo classical ruleset strictly uses PROCESS-NAME for Android packages (PACKAGE-NAME is invalid in Mihomo)
     EXCEPTIONS_MAP = {
         "metrix.ir": [
             "cab.snapp.passenger", "cab.snapp.driver",
             "com.zoodfood.android", "com.zoodfood.android.play",
+            "taxi.tap30.passenger", "taxi.tap30.driver",
             "taxi.tapsi.passenger", "taxi.tapsi.driver"
         ]
     }
@@ -813,18 +816,25 @@ def main():
     for domain, apps in EXCEPTIONS_MAP.items():
         for app in apps:
             classical_exception_lines.append(f"AND,((DOMAIN-SUFFIX,{domain}),(PROCESS-NAME,{app}))")
-            classical_exception_lines.append(f"AND,((DOMAIN-SUFFIX,{domain}),(PACKAGE-NAME,{app}))")
 
     with open(TEXT_DIR / "iran-app-exceptions.txt", "w", encoding="utf-8") as f:
         for r in classical_exception_lines:
             f.write(f"{r}\n")
 
     compiled_packages = {
-        "cab.snapp.passenger", "cab.snapp.driver", "taxi.tap30.passenger", "neshan.maps",
-        "ir.divar", "ir.torob", "market.nobitex", "ir.tejaratbank.mobile", "com.bmi.bam",
-        "ir.blu.banking", "com.aparat.android", "org.bale.messenger", "ir.eitaa.messenger"
+        "cab.snapp.passenger", "cab.snapp.driver", "taxi.tap30.passenger", "taxi.tap30.driver",
+        "neshan.maps", "ir.divar", "ir.torob", "market.nobitex", "ir.tejaratbank.mobile",
+        "com.bmi.bam", "ir.blu.banking", "com.aparat.android", "org.bale.messenger",
+        "ir.eitaa.messenger", "com.asiatech.android", "com.asiatech.asiatel.android", "ir.asiatech.tmk"
     }
-    GLOBAL_EXCLUDES = {"org.telegram.messenger", "com.whatsapp", "com.instagram.android", "com.google.android.youtube"}
+
+    # Exclude non-Iranian apps, browsers, global games & anti-sanction/VPN tools from forced DIRECT
+    GLOBAL_EXCLUDES = {
+        "org.telegram.messenger", "com.whatsapp", "com.instagram.android", "com.google.android.youtube",
+        "com.freefire.hawk", "com.gamebasics.osm", "com.hcg.cok.cafebazaar", "com.hcg.ctw.cafebazaar",
+        "me.gerdoo.browser_plus", "co.bonyan.shecan", "com.anti403.android", "cloud.hoofer.FreeHoofer",
+        "com.yussufdeveloper.gamedns", "com.android.ontoolssh", "com.mufumbo.android.recipe.search.restoftheworld"
+    }
     WINDOWS_PROCESSES = {"Bale.exe", "Eitaa.exe", "Rubika.exe", "IDMan.exe", "Digikala.exe"}
 
     # Baseline: custom-apps.txt
@@ -858,15 +868,48 @@ def main():
             if pkg not in GLOBAL_EXCLUDES and len(pkg) < 85:
                 compiled_packages.add(pkg)
 
+    compiled_packages -= GLOBAL_EXCLUDES
+    sorted_packages = sorted(compiled_packages)
+    sorted_processes = sorted(WINDOWS_PROCESSES)
+
+    # 1) Mihomo Classical Format (Android packages MUST use PROCESS-NAME in Mihomo)
     with open(TEXT_DIR / "iran-all-apps.txt", "w", encoding="utf-8") as f:
-        for pkg in sorted(compiled_packages):
-            f.write(f"PACKAGE-NAME,{pkg}\n")
-        for proc in sorted(WINDOWS_PROCESSES):
+        for pkg in sorted_packages:
+            f.write(f"PROCESS-NAME,{pkg}\n")
+        for proc in sorted_processes:
             f.write(f"PROCESS-NAME,{proc}\n")
 
-    data_apps = {"version": 1, "rules": [{"package_name": sorted(compiled_packages), "process_name": sorted(WINDOWS_PROCESSES)}]}
+    with open(TEXT_DIR / "iran-all-apps.yaml", "w", encoding="utf-8") as f:
+        f.write("payload:\n")
+        for pkg in sorted_packages:
+            f.write(f"  - 'PROCESS-NAME,{pkg}'\n")
+        for proc in sorted_processes:
+            f.write(f"  - 'PROCESS-NAME,{proc}'\n")
+
+    # 2) Surfboard Compatible Format (uses PACKAGE-NAME)
+    with open(TEXT_DIR / "iran-all-apps-surfboard.list", "w", encoding="utf-8") as f:
+        for pkg in sorted_packages:
+            f.write(f"PACKAGE-NAME,{pkg}\n")
+        for proc in sorted_processes:
+            f.write(f"PROCESS-NAME,{proc}\n")
+
+    # 3) Plain Package Names List (for tun.exclude-package automation / reference)
+    with open(TEXT_DIR / "iran-all-apps-packages.txt", "w", encoding="utf-8") as f:
+        for pkg in sorted_packages:
+            f.write(f"{pkg}\n")
+
+    # 4) Sing-box Headless Rule JSON (MUST be separate objects for OR logic; single dict = AND!)
+    data_apps = {
+        "version": 1,
+        "rules": [
+            {"package_name": sorted_packages},
+            {"process_name": sorted_processes}
+        ]
+    }
     with open(TEXT_DIR / "iran-all-apps.json", "w", encoding="utf-8") as f:
         json.dump(data_apps, f, indent=2, ensure_ascii=False)
+
+    print(f"  [★] MACRO: 'iran-all-apps' ({len(sorted_packages)} Android packages + {len(sorted_processes)} Windows processes)", flush=True)
 
     # Restored: Unified Classical Outputs
     classical_rules = ["GEOIP,ir", "DOMAIN-SUFFIX,ir"]
@@ -957,7 +1000,9 @@ def main():
         "lite_domains": len(pruned_lite),
         "total_cidrs": len(master_all_cidrs),
         "threats": len(pruned_threats),
-        "ads": len(pruned_ads)
+        "ads": len(pruned_ads),
+        "apps_android": len(sorted_packages),
+        "apps_windows": len(sorted_processes)
     }
     with open(BASE_DIR / "release_stats.json", "w", encoding="utf-8") as f:
         json.dump(stats_report, f, indent=2)
