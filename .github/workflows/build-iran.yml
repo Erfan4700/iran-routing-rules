@@ -33,7 +33,7 @@ jobs:
       - name: Setup Golang Environment
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: 'stable'
           cache: false
 
       - name: Install Python Dependencies
@@ -47,7 +47,13 @@ jobs:
           (
             MIHOMO_URL=$(curl -sSL -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
               https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | \
-              jq -r '.assets[] | select(.name | test("^mihomo-linux-amd64-(compatible-)?v.*\\.gz$")) | .browser_download_url' | head -n 1)
+              jq -r '.assets[] | select(.name | test("^mihomo-linux-amd64-compatible-v.*\\.gz$")) | .browser_download_url' | head -n 1)
+
+            if [ -z "$MIHOMO_URL" ] || [ "$MIHOMO_URL" = "null" ]; then
+              MIHOMO_URL=$(curl -sSL -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | \
+                jq -r '.assets[] | select(.name | test("^mihomo-linux-amd64-(compatible-)?v.*\\.gz$")) | .browser_download_url' | head -n 1)
+            fi
 
             if [ -z "$MIHOMO_URL" ] || [ "$MIHOMO_URL" = "null" ]; then
               MIHOMO_URL=$(curl -sSL -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
@@ -160,6 +166,8 @@ jobs:
           CIDR_COUNT="N/A"
           THREAT_COUNT="N/A"
           ADS_COUNT="N/A"
+          APPS_ANDROID_COUNT="N/A"
+          APPS_WINDOWS_COUNT="N/A"
 
           if [ -f "release_stats.json" ]; then
             DOMESTIC_COUNT=$(jq -r '.domestic_direct_domains // "N/A"' release_stats.json)
@@ -167,6 +175,8 @@ jobs:
             CIDR_COUNT=$(jq -r '.total_cidrs // "N/A"' release_stats.json)
             THREAT_COUNT=$(jq -r '.threats // "N/A"' release_stats.json)
             ADS_COUNT=$(jq -r '.ads // "N/A"' release_stats.json)
+            APPS_ANDROID_COUNT=$(jq -r '.apps_android // "N/A"' release_stats.json)
+            APPS_WINDOWS_COUNT=$(jq -r '.apps_windows // "N/A"' release_stats.json)
           fi
 
           RELEASE_NOTES="### 🚀 Universal Iran Ruleset Suite — Clean Architecture
@@ -178,12 +188,13 @@ jobs:
           * 📡 **Domestic IP Subnets (Collapsed CIDRs):** \`$CIDR_COUNT\`
           * 🛡️ **Domestic Security & Phishing Blocked:** \`$THREAT_COUNT\`
           * 🚫 **Persian Ads & Trackers Isolated:** \`$ADS_COUNT\`
+          * 📱 **Domestic Apps (Android / Windows):** \`$APPS_ANDROID_COUNT\` / \`$APPS_WINDOWS_COUNT\`
 
           #### 📦 Deliverables & Platforms:
-          * **Mihomo / Clash:** Binary Rulesets (\`.mrs\`), Classical YAML (\`.yaml\`), Raw Lists (\`.txt\`)
+          * **Mihomo / Clash:** Binary Rulesets (\`.mrs\`), Classical YAML (\`.yaml\`), Raw Lists (\`.txt\` using \`PROCESS-NAME\`)
           * **Sing-box:** Binary Rule Sets (\`.srs\`), JSON Headless Rules (\`.json\`)
           * **V2Ray / Xray:** Full Binary Databases (\`geosite.dat\`, \`geoip.dat\`, \`iran.dat\`)
-          * **Surge / QuantumultX:** Classical Rule Sets (\`.list\`)
+          * **Surge / Surfboard / QuantumultX:** Classical Rule Sets (\`.list\`, \`iran-all-apps-surfboard.list\`)
 
           *Integrity Verified: All assets signed with \`sha256sum.txt\`.*"
 
