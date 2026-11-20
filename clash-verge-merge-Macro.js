@@ -1,5 +1,5 @@
 // ==============================================================================
-// 0. USER CONTROL PANEL (Macro Architecture)
+// 0. USER CONTROL PANEL (Macro Core Architecture)
 // ==============================================================================
 
 // --- CORE SYSTEM SWITCHES ---
@@ -37,28 +37,13 @@ const ENABLE_TRACKER_TIKTOK_EXT = false; // Aggressive TikTok tracking (May brea
 const ENABLE_TRACKER_ALL_OEM = false;    // [Macro] Downloads HageziNativeAll (Not recommended for single phones)
 
 // --- IRAN CORE SUITE (Macro All-In-One & Geo-Partitioned) ---
-const ENABLE_IRAN_DIRECT = true;         // Master Switch for Domestic Direct Routing (100% Domestic IPs)
+const ENABLE_IRAN_DIRECT = true;         // Master Switch for Domestic Direct Routing (Domains, Apps, IPs, ASN)
 const ENABLE_IRAN_ABROAD = true;         // [Recommended] Iran services hosted abroad (Hetzner/OVH/Cloudflare)
 const ENABLE_IRAN_SECURITY = true;       // Iran Phishing, Fake Gateways & Threat IPs
 const ENABLE_IRAN_ADS = true;            // Iran Ads & Trackers
 
 // Set true if an Iranian app breaks due to an Ad/Tracker rule blocking its internal SDK
 const BYPASS_ADBLOCK_FOR_IRAN_APPS = false;
-
-// --- ANDROID ACCESS-CONTROL EQUIVALENT (tun.exclude-package) ---
-// Automatically bypasses VpnService (solves TRANSPORT_VPN detection) on FlClashX, YumeBox, Prizrak-Box & Root TUN.
-// Note: Official non-root ClashMetaForAndroid / FlClash ignore YAML exclude-package -> select them in app's Access Control UI.
-const ENABLE_TUN_EXCLUDE_SENSITIVE = true;
-
-// Extra Android package names you want excluded from TUN (added on top of SENSITIVE_IRAN_PACKAGES)
-const CUSTOM_EXCLUDE_PACKAGES = Object.freeze([
-  // "com.example.mybank"
-]);
-
-// Specific foreign-hosted Iranian domains that trigger 403 Sanction blocks and MUST use Proxy
-const SANCTIONED_ABROAD_OVERRIDE = Object.freeze([
-  // "sanctioned-service-sample.com",
-]);
 
 const SECURITY_INTERVAL = 48 * 3600;     // 48 Hours update interval for fast-changing threat feeds
 const STANDARD_INTERVAL = 96 * 3600;     // 96 Hours update interval for general content & tracker rules
@@ -88,58 +73,6 @@ const JUNK_RULES_REGEX = /(?:GEOIP|GEOSITE|RULE-SET),[^,\n]*(?<![a-z0-9])(?:CN|C
 const PROXY_KEYWORD_REGEX = /proxy|auto|select|default|fallback|internet|traffic|manual|nodes|نهایی|اینترنت|دستی|انتخاب|🚀|⚡|♻️/i;
 const INFO_NODE_REGEX = /(?:مشخصات|باقی\s*مانده|مصرف|حجم|trial|expire|traffic|volume)/i;
 
-const EMERGENCY_MANUAL_DOMAINS = Object.freeze([
-  // "custom-local-bank.com",
-  // "my-internal-service.ir"
-]);
-
-// VPN-sensitive Iranian apps (ISPs/Operators, Banking, Crypto, Taxis, Gov, Payments, Markets, Messengers)
-const SENSITIVE_IRAN_PACKAGES = Object.freeze([
-  // Telecom & ISPs
-  "com.asiatech.android", "com.asiatech.asiatel.android", "ir.asiatech.tmk",
-  "com.myirancell", "ir.mci.ecareapp", "ir.rightel.myrightel",
-  "com.Shatel.myshatel", "ir.mobinnet.my", "ir.hiweb.app.my",
-  "ir.mytci", "com.parsonline.app.my", "com.example.pishgaman_net_app",
-  "ir.sabanet.mysabanet", "ir.aspacrm.my.app.mahanet",
-  // Taxis, Delivery & Navigation
-  "cab.snapp.passenger", "cab.snapp.driver", "com.snapp_box.android", "com.snappbox.bikerapp",
-  "taxi.tap30.passenger", "taxi.tap30.driver",
-  "com.taxsee.taxsee", "com.alopeyk.customer", "com.alopeyk.courier",
-  "neshan.maps", "org.rajman.neshan.traffic.tehran.navigator", "ir.balad",
-  // Banking, Neobanks & OTP Tokens
-  "com.bmi.bam", "ir.bmi.bam.nativeweb", "com.bmelat.mobile", "com.bpm.mellatdynamicpin", "com.bpm.sekeh",
-  "ir.tejaratbank.mobile", "ir.tejaratbank.tata.mobile.android.tejarat", "ir.tejaratbank.totp.mobile.android",
-  "com.isc.bsinew", "mob.banking.android.pasargad", "mob.banking.android.sepah",
-  "mob.banking.android.resalat", "mob.banking.android.gardesh",
-  "com.bki.mobilebanking.android", "com.maskanmobilebank", "com.refahbank.dpi.android", "com.refah.superapp",
-  "com.postbank.mb", "com.adpdigital.mbs.ayande", "com.adpdigital.mbs.karafarin", "ir.karafarinbank.digital.mb",
-  "com.ada.mbank.parsian", "ir.parsianbank.parsiness", "com.ada.mbank.mehr",
-  "com.hafizco.mobilebanksina", "com.farazpardazan.enbank", "ir.shahrbank.key", "com.dara.cityBankOtp",
-  "com.samanpr.blu", "com.samanpr.blujr", "ir.blu.banking", "com.dotin.wepod",
-  "com.abankefarda", "com.fardabank.farda", "ir.middleeastbank.www.meb_bank",
-  "com.tosan.dara.day", "com.tosan.dara.mehriran", "com.tosan.dara.postbank", "com.tosan.dara.sarmayeh",
-  "ir.co.isc.mobiletoken", "com.tosan.mobiletoken",
-  // Payments, Bills & Car Services
-  "com.sibche.aspardproject.app", "ir.hafhashtad.android780", "setare_app.ymz.yma.setareyek",
-  "com.mydigipay.app.android", "com.sadadpsp.eva", "com.zarinpal.ewallets",
-  "ir.ayantech.ghabzino", "ir.ayantech.pishkhan24", "ir.itoll.mycarapp",
-  "ir.stsepehr.hamrahcard", "com.bahamta", "com.jibimo.individuals", "com.tara360.tara.production",
-  // Crypto Exchanges
-  "market.nobitex", "ir.wallex.app", "io.bitpin.app", "com.ramzinex.ramzinex",
-  "com.exir.mobile", "com.tabdeal", "land.tether.tetherland", "com.ompfinex.app",
-  "com.bitbarg.app", "ir.aban.th", "com.excoino.excoino", "com.mazdax.exchange",
-  // Government, Health & Insurance
-  "ir.gov.mygov", "ir.gov.tax.MyTax", "com.tamin.taminhamrah", "ir.medu.shad",
-  "com.blackOak.dadgahyar", "com.paziresh24.paziresh24", "ir.hivatec.doctoreto",
-  "com.drsainaapp", "com.bimebazar.bimebazar", "com.nar.bimito",
-  // E-commerce, App Stores & Domestic Messengers
-  "com.farsitel.bazaar", "ir.mservices.market", "ir.divar", "com.sheypoor.mobile",
-  "com.digikala", "ir.torob", "ir.basalam.app", "ir.basalam.basalam",
-  "com.zoodfood.android", "com.okala", "com.snappmarket", "ir.alibaba", "com.mrbilit.app",
-  "org.bale.messenger", "ir.eitaa.messenger", "app.rbmain", "app.rubino.main",
-  "net.iGap", "mobi.mmdt.ottplus", "ir.nasim"
-]);
-
 const FROZEN_HOSTS = Object.freeze({
   "forcesafesearch.google.com": "216.239.38.120",
   "www.google.com": "216.239.38.120",
@@ -150,22 +83,6 @@ const FROZEN_HOSTS = Object.freeze({
 });
 
 const PURE_DOMESTIC_RESOLVERS = Object.freeze([
-  "system",
-  "217.218.127.127",
-  "217.218.155.155",
-  "185.98.113.113",
-  "185.98.114.114"
-]);
-
-const UNPOISONED_PROXY_RESOLVERS = Object.freeze([
-  "system",
-  "217.218.127.127",
-  "217.218.155.155",
-  "185.98.113.113",
-  "185.98.114.114"
-]);
-
-const HYBRID_BOOTSTRAP_RESOLVERS = Object.freeze([
   "system",
   "217.218.127.127",
   "217.218.155.155",
@@ -236,10 +153,10 @@ const BASE_RULE_PROVIDERS = Object.create(null);
 const STATIC_RULES_STAGE1 = []; // Local networks, Security, Content, Ads, Trackers
 const STATIC_RULES_STAGE2 = []; // Domestic whitelist & Iran Macro direct rules + QUIC block for foreign traffic
 
-const BASE_SNIFFER_SKIP_DOMAINS = [
+const BASE_SNIFFER_SKIP_DOMAINS = Object.freeze([
   "Mijia Cloud", "+.push.apple.com", "+.apple.com",
   "+.lan", "+.local", "+.home.arpa", "+.ir"
-];
+]);
 
 const BASE_FAKE_IP_FILTER = [
   "+.ir", "+.lan", "+.local", "+.home.arpa",
@@ -256,13 +173,6 @@ const BASE_NS_POLICY = Object.create(null);
 BASE_NS_POLICY["+.ir"] = PURE_DOMESTIC_RESOLVERS;
 BASE_NS_POLICY["supl.google.com"] = PURE_DOMESTIC_RESOLVERS;
 BASE_NS_POLICY["+.supl.google.com"] = PURE_DOMESTIC_RESOLVERS;
-
-for (let i = 0; i < EMERGENCY_MANUAL_DOMAINS.length; i++) {
-  const d = EMERGENCY_MANUAL_DOMAINS[i];
-  BASE_SNIFFER_SKIP_DOMAINS.push(`+.${d}`);
-  BASE_FAKE_IP_FILTER.push(`+.${d}`);
-  BASE_NS_POLICY[`+.${d}`] = PURE_DOMESTIC_RESOLVERS;
-}
 
 // ------------------------------------------------------------------------------
 // Compile Static Pipeline (Stage 1)
@@ -327,16 +237,12 @@ if (ENABLE_TRACKER_ALL_OEM) {
 }
 
 // ------------------------------------------------------------------------------
-// Compile Post-Waze Domestic Whitelist Pipeline (Stage 2)
+// Compile Domestic Routing Pipeline (Stage 2)
 // ------------------------------------------------------------------------------
 
-// 8. Manual Zero-Delay Domestic Whitelist
-for (let i = 0; i < EMERGENCY_MANUAL_DOMAINS.length; i++) {
-  STATIC_RULES_STAGE2.push(`DOMAIN-SUFFIX,${EMERGENCY_MANUAL_DOMAINS[i]},DIRECT`);
-}
 STATIC_RULES_STAGE2.push("DOMAIN-SUFFIX,ir,DIRECT");
 
-// 9. Iran Macro Direct Routing
+// 8. Iran Macro Direct Routing (Reads entirely from remote rule-providers)
 if (ENABLE_IRAN_DIRECT) {
   if (!BYPASS_ADBLOCK_FOR_IRAN_APPS) {
     BASE_RULE_PROVIDERS["iran-all-apps"] = makeProvider("iran-all-apps", "classical", "text", `${IRAN_RULES_BASE_URL}iran-all-apps.txt`, STANDARD_INTERVAL);
@@ -360,7 +266,7 @@ if (ENABLE_IRAN_DIRECT) {
   STATIC_RULES_STAGE2.push("RULE-SET,iran-asn,DIRECT,no-resolve");
 }
 
-// 10. QUIC Blocking placed AFTER domestic rules so Iranian apps/sites keep full UDP/QUIC support
+// 9. QUIC Blocking placed AFTER domestic rules so Iranian apps/sites keep full UDP/QUIC support
 if (ENABLE_QUIC_BLOCK) {
   STATIC_RULES_STAGE2.push("AND,((NETWORK,UDP),(DST-PORT,443)),REJECT");
 }
@@ -374,7 +280,7 @@ const PRECOMPILED_BASE_RULES_SET = new Set([...STATIC_RULES_STAGE1, ...STATIC_RU
 
 function main(config, profileName) {
   // --------------------------------------------------------------------------
-  // [FIX 1]: Single-Pass Proxy Normalization (Strip info nodes, cast ports & extract names)
+  // [1]: Single-Pass Proxy Normalization (Strip info nodes, cast ports & extract names)
   // --------------------------------------------------------------------------
   let validProxyNames = null;
 
@@ -402,7 +308,7 @@ function main(config, profileName) {
   }
 
   // --------------------------------------------------------------------------
-  // [FIX 2]: Auto-generate Proxy Groups & Inject IRAN-ABROAD Smart Selector
+  // [2]: Auto-generate Proxy Groups & Inject IRAN-ABROAD Smart Selector
   // --------------------------------------------------------------------------
   if (!validProxyNames || validProxyNames.length === 0) {
     validProxyNames = ["DIRECT"];
@@ -433,8 +339,7 @@ function main(config, profileName) {
   // Inject Dedicated IRAN-ABROAD Group (DIRECT by default, with instant Proxy fallback)
   if (ENABLE_IRAN_DIRECT && ENABLE_IRAN_ABROAD) {
     const groups = config["proxy-groups"];
-    const exists = groups.some(g => g && g.name === "IRAN-ABROAD");
-    if (!exists) {
+    if (!groups.some(g => g && g.name === "IRAN-ABROAD")) {
       groups.push({
         name: "IRAN-ABROAD",
         type: "select",
@@ -463,20 +368,7 @@ function main(config, profileName) {
   profile["store-selected"] = true;
 
   // --------------------------------------------------------------------------
-  // [FIX 3]: Android TUN Exclude-Package (Access Control Equivalent on Supported Clients)
-  // --------------------------------------------------------------------------
-  if (ENABLE_TUN_EXCLUDE_SENSITIVE || CUSTOM_EXCLUDE_PACKAGES.length > 0) {
-    const tun = (config.tun ??= {});
-    const existingExcludes = Array.isArray(tun["exclude-package"]) ? tun["exclude-package"] : [];
-    const targetExcludes = ENABLE_TUN_EXCLUDE_SENSITIVE
-      ? [...existingExcludes, ...SENSITIVE_IRAN_PACKAGES, ...CUSTOM_EXCLUDE_PACKAGES]
-      : [...existingExcludes, ...CUSTOM_EXCLUDE_PACKAGES];
-
-    tun["exclude-package"] = Array.from(new Set(targetExcludes));
-  }
-
-  // --------------------------------------------------------------------------
-  // [FIX 4]: Zero-Allocation Sniffer Configuration (Prevent Iran Handshake Latency)
+  // [3]: Zero-Allocation Sniffer Configuration (Prevent Iran Handshake Latency)
   // --------------------------------------------------------------------------
   config.sniffer = {
     enable: true,
@@ -499,7 +391,7 @@ function main(config, profileName) {
   }
 
   // --------------------------------------------------------------------------
-  // [FIX 5]: DNS Architecture & Dynamic Nameserver Policy Mapping
+  // [4]: DNS Architecture & Dynamic Nameserver Policy Mapping
   // --------------------------------------------------------------------------
   const dns = (config.dns ??= {});
   dns.enable = true;
@@ -514,8 +406,8 @@ function main(config, profileName) {
   dns.ipv6 = false;
   dns["prefer-h3"] = false;
 
-  dns["default-nameserver"] = HYBRID_BOOTSTRAP_RESOLVERS;
-  dns["proxy-server-nameserver"] = UNPOISONED_PROXY_RESOLVERS;
+  dns["default-nameserver"] = PURE_DOMESTIC_RESOLVERS;
+  dns["proxy-server-nameserver"] = PURE_DOMESTIC_RESOLVERS;
   dns["direct-nameserver"] = PURE_DOMESTIC_RESOLVERS;
   dns["fake-ip-filter"] = BASE_FAKE_IP_FILTER;
 
@@ -528,14 +420,11 @@ function main(config, profileName) {
   config["rule-providers"] = Object.assign({}, BASE_RULE_PROVIDERS, config["rule-providers"]);
 
   // --------------------------------------------------------------------------
-  // [FIX 6]: Rapid User Rules Sanitization & Zero-Copy Precedence Assembly
+  // [5]: Rapid User Rules Sanitization & Zero-Copy Precedence Assembly
   // --------------------------------------------------------------------------
   let capturedMatchRule = null;
   const userSanitizedRules = [];
   const seenRules = new Set(PRECOMPILED_BASE_RULES_SET);
-
-  seenRules.add(`DOMAIN-SUFFIX,waze.com,${defaultProxyGroup}`);
-  seenRules.add(`DOMAIN-KEYWORD,waze,${defaultProxyGroup}`);
 
   const rawRules = config.rules;
   if (Array.isArray(rawRules)) {
@@ -560,19 +449,9 @@ function main(config, profileName) {
     }
   }
 
-  // Compile Top-Priority Sanction Overrides (Evaluated BEFORE domestic Stage 2)
-  const sanctionOverrideRules = [];
-  for (let i = 0; i < SANCTIONED_ABROAD_OVERRIDE.length; i++) {
-    const d = SANCTIONED_ABROAD_OVERRIDE[i];
-    if (d) sanctionOverrideRules.push(`DOMAIN-SUFFIX,${d},${defaultProxyGroup}`);
-  }
-
-  // Final Assembly: Stage 1 (Security/Ads) -> Sanctions Override -> Waze -> Stage 2 (Direct/Abroad + QUIC Block) -> User Rules -> Match Fallback
+  // Final Assembly: Stage 1 (Security/Ads) -> Stage 2 (Direct/Abroad + QUIC Block) -> User Rules -> Match Fallback
   config.rules = [
     ...STATIC_RULES_STAGE1,
-    ...sanctionOverrideRules,
-    `DOMAIN-SUFFIX,waze.com,${defaultProxyGroup}`,
-    `DOMAIN-KEYWORD,waze,${defaultProxyGroup}`,
     ...STATIC_RULES_STAGE2,
     ...userSanitizedRules,
     capturedMatchRule ?? `MATCH,${defaultProxyGroup}`
