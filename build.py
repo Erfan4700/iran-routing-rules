@@ -83,7 +83,7 @@ UNBREAK_WHITELIST = {
 SAFETY_EXCLUDE_EXACT = {
     "eset.com", "github.com", "github.io", "githubusercontent.com", "glitch.me",
     "googleapis.com", "gvt1.com", "radiojavan.com", "ubuntu.com", "wordpress.com",
-    "animelist.ir", "gamepass.ir"
+    "animelist.ir", "gamepass.ir", "waze.com"
 }
 SAFETY_EXCLUDE_CONTAIN = ("google.com", "ooklaserver.net", "cloudflare.com")
 
@@ -821,17 +821,57 @@ def main():
         for r in classical_exception_lines:
             f.write(f"{r}\n")
 
+    # Seed list of critical Iranian Android packages (Telecom/ISPs, Banking, Crypto, Taxis, Gov, Payments, Markets, Messengers)
     compiled_packages = {
-        "cab.snapp.passenger", "cab.snapp.driver", "taxi.tap30.passenger", "taxi.tap30.driver",
-        "neshan.maps", "ir.divar", "ir.torob", "market.nobitex", "ir.tejaratbank.mobile",
-        "com.bmi.bam", "ir.blu.banking", "com.aparat.android", "org.bale.messenger",
-        "ir.eitaa.messenger", "com.asiatech.android", "com.asiatech.asiatel.android", "ir.asiatech.tmk"
+        # Telecom & ISPs
+        "com.asiatech.android", "com.asiatech.asiatel.android", "ir.asiatech.tmk",
+        "com.myirancell", "ir.mci.ecareapp", "ir.rightel.myrightel",
+        "com.Shatel.myshatel", "ir.mobinnet.my", "ir.hiweb.app.my",
+        "ir.mytci", "com.parsonline.app.my", "com.example.pishgaman_net_app",
+        "ir.sabanet.mysabanet", "ir.aspacrm.my.app.mahanet",
+        # Taxis, Delivery & Navigation
+        "cab.snapp.passenger", "cab.snapp.driver", "com.snapp_box.android", "com.snappbox.bikerapp",
+        "taxi.tap30.passenger", "taxi.tap30.driver",
+        "com.taxsee.taxsee", "com.alopeyk.customer", "com.alopeyk.courier",
+        "neshan.maps", "org.rajman.neshan.traffic.tehran.navigator", "ir.balad",
+        # Banking, Neobanks & OTP Tokens
+        "com.bmi.bam", "ir.bmi.bam.nativeweb", "com.bmelat.mobile", "com.bpm.mellatdynamicpin", "com.bpm.sekeh",
+        "ir.tejaratbank.mobile", "ir.tejaratbank.tata.mobile.android.tejarat", "ir.tejaratbank.totp.mobile.android",
+        "com.isc.bsinew", "mob.banking.android.pasargad", "mob.banking.android.sepah",
+        "mob.banking.android.resalat", "mob.banking.android.gardesh",
+        "com.bki.mobilebanking.android", "com.maskanmobilebank", "com.refahbank.dpi.android", "com.refah.superapp",
+        "com.postbank.mb", "com.adpdigital.mbs.ayande", "com.adpdigital.mbs.karafarin", "ir.karafarinbank.digital.mb",
+        "com.ada.mbank.parsian", "ir.parsianbank.parsiness", "com.ada.mbank.mehr",
+        "com.hafizco.mobilebanksina", "com.farazpardazan.enbank", "ir.shahrbank.key", "com.dara.cityBankOtp",
+        "com.samanpr.blu", "com.samanpr.blujr", "ir.blu.banking", "com.dotin.wepod",
+        "com.abankefarda", "com.fardabank.farda", "ir.middleeastbank.www.meb_bank",
+        "com.tosan.dara.day", "com.tosan.dara.mehriran", "com.tosan.dara.postbank", "com.tosan.dara.sarmayeh",
+        "ir.co.isc.mobiletoken", "com.tosan.mobiletoken",
+        # Payments, Bills & Car Services
+        "com.sibche.aspardproject.app", "ir.hafhashtad.android780", "setare_app.ymz.yma.setareyek",
+        "com.mydigipay.app.android", "com.sadadpsp.eva", "com.zarinpal.ewallets",
+        "ir.ayantech.ghabzino", "ir.ayantech.pishkhan24", "ir.itoll.mycarapp",
+        "ir.stsepehr.hamrahcard", "com.bahamta", "com.jibimo.individuals", "com.tara360.tara.production",
+        # Crypto Exchanges
+        "market.nobitex", "ir.wallex.app", "io.bitpin.app", "com.ramzinex.ramzinex",
+        "com.exir.mobile", "com.tabdeal", "land.tether.tetherland", "com.ompfinex.app",
+        "com.bitbarg.app", "ir.aban.th", "com.excoino.excoino", "com.mazdax.exchange",
+        # Government, Health & Insurance
+        "ir.gov.mygov", "ir.gov.tax.MyTax", "com.tamin.taminhamrah", "ir.medu.shad",
+        "com.blackOak.dadgahyar", "com.paziresh24.paziresh24", "ir.hivatec.doctoreto",
+        "com.drsainaapp", "com.bimebazar.bimebazar", "com.nar.bimito",
+        # E-commerce, App Stores, Streaming & Domestic Messengers
+        "com.farsitel.bazaar", "ir.mservices.market", "ir.divar", "com.sheypoor.mobile",
+        "com.digikala", "ir.torob", "ir.basalam.app", "ir.basalam.basalam",
+        "com.zoodfood.android", "com.okala", "com.snappmarket", "ir.alibaba", "com.mrbilit.app",
+        "com.aparat.android", "org.bale.messenger", "ir.eitaa.messenger", "app.rbmain",
+        "app.rubino.main", "net.iGap", "mobi.mmdt.ottplus", "ir.nasim"
     }
 
     # Exclude non-Iranian apps, browsers, global games & anti-sanction/VPN tools from forced DIRECT
     GLOBAL_EXCLUDES = {
         "org.telegram.messenger", "com.whatsapp", "com.instagram.android", "com.google.android.youtube",
-        "com.freefire.hawk", "com.gamebasics.osm", "com.hcg.cok.cafebazaar", "com.hcg.ctw.cafebazaar",
+        "com.waze", "com.freefire.hawk", "com.gamebasics.osm", "com.hcg.cok.cafebazaar", "com.hcg.ctw.cafebazaar",
         "me.gerdoo.browser_plus", "co.bonyan.shecan", "com.anti403.android", "cloud.hoofer.FreeHoofer",
         "com.yussufdeveloper.gamedns", "com.android.ontoolssh", "com.mufumbo.android.recipe.search.restoftheworld"
     }
