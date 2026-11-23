@@ -108,7 +108,8 @@ const PURE_DOMESTIC_RESOLVERS = Object.freeze([
   "217.218.127.127",
   "217.218.155.155",
   "185.98.113.113",
-  "185.98.114.114"
+  "185.98.114.114",
+  "193.186.32.32"
 ]);
 
 const DOH_ENDPOINTS = Object.freeze([
