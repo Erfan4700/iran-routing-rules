@@ -875,7 +875,7 @@ def main():
         "me.gerdoo.browser_plus", "co.bonyan.shecan", "com.anti403.android", "cloud.hoofer.FreeHoofer",
         "com.yussufdeveloper.gamedns", "com.android.ontoolssh", "com.mufumbo.android.recipe.search.restoftheworld"
     }
-    WINDOWS_PROCESSES = {"Bale.exe", "Eitaa.exe", "Rubika.exe", "IDMan.exe", "Digikala.exe"}
+    WINDOWS_PROCESSES = {"Bale.exe", "Eitaa.exe", "Rubika.exe", "Digikala.exe"}
 
     # Baseline: custom-apps.txt
     custom_apps_path = BASELINE_DIR / "custom-apps.txt"
