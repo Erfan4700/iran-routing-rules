@@ -226,7 +226,6 @@
 7zanbil.com
 80211p.com
 8clandr.com
-8light-co.com
 8ta8.com
 9027690708.mixin.website
 90kala.com
@@ -499,6 +498,7 @@ abzarearg.com
 abzarelectric.com
 abzareman.com
 abzaremanafi.com
+abzareshiraz.com
 abzaretminan.com
 abzareto.com
 abzarfakher.com
@@ -787,7 +787,6 @@ adokhtshop.com
 adonisoils.com
 adonisparvaz.com
 adonispharmacy.com
-adonisshop.com
 adorateb.com
 adpdent.com
 adpdigital.com
@@ -1241,7 +1240,6 @@ akharinnews.com
 akhavan-oil.com
 akhavancenter.com
 akhavanhome.com
-akhavanpaper.com
 akhavanstore.com
 akhavilab.com
 akhavishop.com
@@ -1265,6 +1263,7 @@ aknoonatelier.com
 ako-energy.com
 akobdc.com
 akobike.com
+akoleather.com
 akomal.com
 akomod.com
 akonetfanava.com
@@ -1290,7 +1289,6 @@ aksbardar.com
 akserahem.com
 alaatv.com
 alaberz.com
-alabzar.com
 alacharmmeraj.com
 alaediin.com
 alaedin.travel
@@ -1385,6 +1383,7 @@ algeroshop.com
 algorithmbartar.com
 algotab.com
 alhaal.com
+alhewaraldini.com
 ali-coffee.com
 ali-gallery.com
 ali-part.com
@@ -2036,7 +2035,6 @@ ansaroptic.com
 ansarprint.com
 ansarquran.com
 ansarsandogh.com
-ansehgallery.com
 ansehshop.com
 anseplus.com
 antalyamen.com
@@ -2115,9 +2113,9 @@ app.irana.app
 app.mahersho.academy
 app.mizbansms.com
 app.nabzebourse.com
+app.nesagholikhani.com
 app.nimaghorbani.com
 app.novinpaydarco.com
-app.panjool.com
 app.persianrom.com
 app.pivaz.io
 app.rafieienglishclinic.com
@@ -2355,7 +2353,6 @@ arayeshideniz.com
 arayeshiebaneh.com
 arayeshiexir.com
 arayeshifelora.com
-arayeshikhodae.com
 arayeshilotus.com
 arayeshimarvel.com
 arayeshimohamad.com
@@ -2572,6 +2569,7 @@ ariuservice.com
 arivavape1.com
 arixun.com
 ariya98.payping.net
+ariyaboresh.com
 ariyachin.com
 ariyagraph.com
 ariyahse.com
@@ -2804,7 +2802,6 @@ arshiael.com
 arshiajahan.com
 arshianbaft.com
 arshianclinic.com
-arshiankala.com
 arshiatarkhis.com
 arshiawatch.com
 arshidagallery.com
@@ -3413,6 +3410,7 @@ atefehmoradi.com
 atefesalemi.com
 atefesattari.com
 atefkala.com
+atelieha.com
 ateliye-arousesharghi.com
 atena-ngo.com
 atenaashop.com
@@ -3700,6 +3698,7 @@ avang-shop.com
 avangames.com
 avangasht.com
 avangemail.com
+avangkala.com
 avangmusicshop.com
 avangp.com
 avangpishro.com
@@ -3874,6 +3873,7 @@ ayandehsazfund.com
 ayandeiran.com
 ayaran1.com
 ayarangold.com
+ayateeshraq.com
 ayazastro.com
 aybanoo.com
 aydaheatsink.com
@@ -4447,7 +4447,6 @@ banehnab.com
 banehnor.com
 banehoffer.com
 banehpedia.com
-banehplus.com
 banehprime.com
 banehpushak.com
 banehshikpoosh.com
@@ -4559,6 +4558,7 @@ baramtec.com
 baran.click
 barana-beautyshop.com
 baranagroup.com
+baranakids.com
 baranamotors.com
 baranblanket.com
 barancloud.com
@@ -4688,6 +4688,7 @@ barkob.com
 barmancommerce.com
 barmanec.com
 barmannet.com
+barmanpuladpishdad.com
 barmapart.com
 barmaye.app
 barmkala.com
@@ -4819,7 +4820,6 @@ batrika.com
 battery-saba.com
 battery-ufo.com
 batteryaria.com
-batteryasli.com
 batterybakhshi.com
 batterycamelion.com
 batterychee.com
@@ -5195,6 +5195,7 @@ behpart.com
 behpeyk.com
 behpood.com
 behpooshshop.com
+behpoushfakhr.com
 behpu.com
 behpuyan.com
 behradcharity.com
@@ -5223,6 +5224,7 @@ behsakala.com
 behsaman.co
 behsamanco.com
 behsanariansaman.com
+behsaz.co
 behsazabshop.com
 behsazanchoob.com
 behsazanhost.com
@@ -5433,6 +5435,7 @@ biahyper.com
 biakala.com
 biakooh.com
 biamoz.com
+biamoz.org
 biashosh.com
 biato.shop
 biatokala.com
@@ -5545,6 +5548,7 @@ binasanat.com
 binazir.com
 binazir.net
 binazirlove.loxblog.com
+binbirbaklava.com
 binesh-ec.com
 binesh-no.com
 binesheno.com
@@ -5795,6 +5799,7 @@ bonyanlab.com
 bonyano.com
 bonyhome.com
 bonza-co.com
+booca.co
 boodise.shop
 boof.coffee
 boofacademy.com
@@ -6734,7 +6739,6 @@ chikado.com
 chikaecolodge.com
 chikahomeshop.com
 chikastor.com
-chikhasti.com
 chikhoobeh.com
 chikikala.com
 chikojast.net
@@ -6893,7 +6897,6 @@ citybagshop.com
 citycenterir.com
 cityceram.com
 citydaroo.com
-citydi.com
 cityfloweer.com
 citykaveh.com
 citymokamel.com
@@ -8251,7 +8254,6 @@ dibaone.com
 dibapc.com
 dibaptc.com
 dibasabz.com
-dibatejaratco.com
 dibatravel.com
 dibayadak.com
 dibazin.com
@@ -8404,6 +8406,7 @@ digiimall.com
 digiiranian.com
 digiishop.com
 digijahan.com
+digijarah.com
 digijojeh.com
 digikala.com
 digikalabin.com
@@ -8555,6 +8558,7 @@ dinshenasi.com
 diopars.com
 diplomatvip.com
 dirakovin.com
+diranlou.xyz
 dirbaaz.com
 directline.dadeh-pardaz.com
 dirgodaz.com
@@ -8578,6 +8582,7 @@ divarpin.com
 divarsanati.com
 divaryadak.com
 divazhe.com
+divinost.com
 diyakomarket.com
 diyakopardazesh.com
 diyakoshop.org
@@ -8874,6 +8879,7 @@ donyayezaban.com
 donyayfarsh.com
 donyaykhoraki.com
 doojclothing.com
+dookhan.com
 dookht.com
 dookht.shop
 dookhtik.com
@@ -9060,7 +9066,6 @@ dr-maram.com
 dr-mechanic.com
 dr-moghadasi.com
 dr-mohsensalimian.com
-dr-mrp.com
 dr-naderi.com
 dr-oraee-pharmacy.com
 dr-plant.shop
@@ -9086,6 +9091,7 @@ dr20medical.com
 drabbasgolestani.com
 drabbasian.com
 drabdolsamadi.com
+drabdossalehi.com
 drafrah.com
 drafsharimedical.com
 drafzalpharmacy.site
@@ -9315,7 +9321,6 @@ drschmitco.com
 drscrubber.com
 drseda.com
 drsepehriclinic.com
-drserita.com
 drsetarehjani.com
 drseyedzadeh.com
 drseylabipharmacy.com
@@ -10105,6 +10110,7 @@ erp2.chamraniha.com
 erp3.chamraniha.com
 erpishro.com
 errorchi.com
+errorgroup.com
 errorpc.com
 ersalak.com
 ersaljet.com
@@ -10217,7 +10223,6 @@ espilight.com
 espinastech.com
 espinastools.com
 espirohome.com
-espodecor.com
 espootatiravaran.com
 espressoiliya.com
 espressoon.com
@@ -11593,6 +11598,7 @@ gallerynoghreh.com
 galleryomid.shop
 galleryrobens.com
 gallerysadaf.com
+gallerysalami.com
 gallerysalimi.com
 galleryshokoofa.com
 gallerytiadem.com
@@ -11723,7 +11729,6 @@ gastrobackcity.com
 gastrobackgermany.com
 gastrobackshop.com
 gate-db.com
-gatebaz2.sbs
 gateiran.com
 gattoboutiqe.com
 gavanifaucet.com
@@ -11895,6 +11900,7 @@ ghahvehbazar.com
 ghahvekhane.com
 ghajarifood.com
 ghajarirestaurant.com
+ghalam.shop
 ghalamafarin.com
 ghalambook.com
 ghalamchikaraj.com
@@ -11980,6 +11986,7 @@ ghaychi.com
 ghayourshop.com
 ghaza24.com
 ghazaalacademy.com
+ghazaalstyle.com
 ghazachi.com
 ghazadaroo.com
 ghazagram.com
@@ -12641,7 +12648,6 @@ hadiperfume.com
 hadirayati.com
 hadirobo.com
 hadiscosmetics.com
-hadisgolpa.com
 hadishafzar.com
 hadishjewellry.com
 hadishpars.com
@@ -12813,7 +12819,6 @@ hamekara.com
 hamemodel.com
 hamengroup.com
 hamersanat.com
-hamerzshop.com
 hamesland.com
 hamgam-energy.com
 hamgama.com
@@ -15415,6 +15420,7 @@ jafekri.shop
 jafkar.com
 jaguarpetro.com
 jahadamoozeshi.com
+jahadkala.com
 jahan-gostar.com
 jahan-ideh.com
 jahan-sanat.com
@@ -15508,6 +15514,7 @@ jalebamooz.com
 jalili.site
 jalilsajad.com
 jalinous.com
+jalizan.com
 jalizbar.com
 jalmobag.com
 jam-packco.com
@@ -15670,7 +15677,6 @@ javidarabshahi.com
 javidfoolad.com
 javidservice.com
 javienglish.com
-javime.com
 jayab.app
 jayeman.com
 jayezedoon.com
@@ -15916,7 +15922,6 @@ kadolove.com
 kadomoon.com
 kadonab.com
 kadoniz.com
-kadoona.com
 kadootori2.com
 kadopeik.com
 kadoposh.com
@@ -17073,6 +17078,7 @@ khonenoghteh.com
 khoneshow.com
 khonok.com
 khonyagar.com
+khoob.net
 khoobb.com
 khoobehbazar.com
 khoodro24.com
@@ -17248,6 +17254,7 @@ kiedori.com
 kifabzar.com
 kifarayesh.com
 kifche.com
+kifcinderella.com
 kifcity.com
 kifeafsay.com
 kifebimarestani.com
@@ -17466,6 +17473,7 @@ kolbepeanut.com
 kolbetakhtenard.com
 kolbezabanpub.com
 kolkomolk.com
+kolompeajdari.com
 komakacademy.com
 komakamoozeshi.com
 komakchild.org
@@ -17750,6 +17758,7 @@ lanmis.com
 lanzafoodco.com
 lanzho.com
 lap-mall.com
+lapabzar.com
 lapbuy.com
 lapchip.com
 lapmaro.com
@@ -17914,6 +17923,7 @@ leilagolbano.com
 leilanaa.com
 leilatakfallah.com
 leleum.com
+lelimond.com
 lemaay.com
 lemangalerie.com
 lemansshoes.com
@@ -18001,6 +18011,7 @@ liansarmayesh.com
 liansystem.com
 liantell.com
 liara.run
+liara.space
 liarozh.com
 liatoy.com
 liavacare.com
@@ -18307,7 +18318,6 @@ luminaaccessory.com
 luminaorganic.com
 luminart.pro
 luminavoip.com
-luminousbait.com
 lumishopstore.com
 lumitshop.com
 lumixar.shop
@@ -18345,7 +18355,6 @@ luxenik.com
 luxerykhaneh.com
 luxetranslate.com
 luxetyre.com
-luxevisa.com
 luxgallery.org
 luxgallerymarya.com
 luxiarts.com
@@ -18691,7 +18700,6 @@ mahesabdarha.com
 mahestan.com
 mahestanart.com
 mahestanbag.com
-mahetalaei.com
 mahex.com
 mahfeleavaz.com
 mahgisoohotel.com
@@ -19024,6 +19032,7 @@ mandegartejarat.com
 mandegarweb.com
 manebartar.com
 manel.live
+maneligostar.com
 maneliibrand.com
 manelpet.com
 manelymarket.com
@@ -19045,6 +19054,7 @@ maninour.com
 manipardazesh.com
 maniradecor.com
 maniranrayaneh.com
+manirco.com
 manisda.com
 manishopi.com
 manizgallery.com
@@ -19247,6 +19257,7 @@ maryamsoft.com
 maryamv.com
 maryamzamani.com
 marzban.net
+marziehshoukat.com
 marzihub.com
 marzinshop.com
 marzkadeh.com
@@ -19431,6 +19442,7 @@ mavingold.com
 maviroj.com
 mavishopping.com
 mavishtak.com
+mavitire.com
 mawa.law
 max-follower.com
 maxbax.com
@@ -19866,7 +19878,6 @@ mellicharter.org
 mellicloud.com
 melligold.com
 mellikar.com
-mellimarkazi.com
 mellishen.com
 mellshoes1.shop
 melocoffee.com
@@ -19909,7 +19920,6 @@ memarup.com
 member.ielts-melal.com
 memfis.shop
 memolmezon.com
-memoric.org
 memoriescoffee.com
 memory-center.com
 memory.market
@@ -20412,6 +20422,7 @@ moallemhome.com
 moallm.com
 moamelat.net
 moaraghsara.com
+moarefan.com
 moassesseh.com
 moaveze.shop
 moazamcip.com
@@ -22079,6 +22090,7 @@ neshinak.com
 neshino.com
 neshonak.com
 neskaloo.com
+nesshope.com
 nestak.app
 nestkala.com
 nestlie.com
@@ -22373,7 +22385,6 @@ niktakala.com
 niktateb.com
 niktell.com
 niktool.com
-niktrading.ae
 nikupen.com
 nikushop.com
 nikvillashiraz.com
@@ -23445,6 +23456,7 @@ owjabzar.com
 owjconcert.com
 owjertebat.com
 owjsoft.com
+oxigencosmetic.com
 oxin360.com
 oxinautonics.com
 oxinazin.com
@@ -23460,6 +23472,7 @@ oxyazma.com
 oxygenyar.com
 oxykimia.com
 oxymana.com
+oxymeda.com
 ozamaan.com
 ozhenbeauty.com
 ozhenkala.com
@@ -23730,7 +23743,6 @@ paniztaxi.com
 panizvip.com
 panjareh.com
 panje.pet
-panjool.com
 panofeh.com
 pantel.me
 pantoiran.com
@@ -24000,7 +24012,6 @@ parsaplus.com
 parsaprinter.com
 parsaradshop.com
 parsaron.com
-parsasanat-co.com
 parsasell.com
 parsashimico.com
 parsasout.com
@@ -25716,6 +25727,7 @@ qeshmhotels.org
 qeshmhub.com
 qeshminora.com
 qeshmkadeh.com
+qeshmlegacy.com
 qeshmlux.com
 qeshmmall.com
 qeshmmars.com
@@ -26128,7 +26140,6 @@ ramezan.com
 ramezanali.com
 ramezanibattery.com
 raminashop.com
-raminmokamel.com
 ramis.agency
 ramkastore.com
 rammeat.com
@@ -26426,7 +26437,6 @@ rayanprocess.com
 rayanrahjoo.com
 rayansaba.com
 rayansadaf.com
-rayansaipa.com
 rayansale.com
 rayansama.com
 rayanset.com
@@ -26603,7 +26613,6 @@ resin-artt.com
 resindayan.com
 resinsab.com
 resinshiraz.com
-resiranart.com
 respina.net
 respina24.biz
 respina24.com
@@ -27099,7 +27108,6 @@ rouzbeh-cl.com
 rouzbeh.info
 rouzdarou.com
 rouzmall.com
-rovohome.com
 rowshanpart.com
 rowshna.com
 rowvan.com
@@ -28308,7 +28316,6 @@ sarmaban.com
 sarmadbs.com
 sarmadgostar.com
 sarmadnews.com
-sarmadpaystation.tpsoil.com
 sarmadschool.org
 sarmagarma.co
 sarmaland.com
@@ -29559,7 +29566,6 @@ shinateb.com
 shinearayeshi.com
 shineartcompany.com
 shinechik.com
-shinehjani.com
 shinelandaccessory.com
 shinenailis.com
 shinenailshop.com
@@ -29875,6 +29881,7 @@ shopitoys.com
 shopix24.com
 shopli.shop
 shopliamaro.com
+shopluster.com
 shopmilltools.com
 shopmit.com
 shopmit.net
@@ -30332,6 +30339,7 @@ softyar.com
 sofunco.com
 sogandmobile.com
 sogandsanat.com
+sogandshop.com
 sogandshop.shop
 sogarin.com
 soghatkavir.com
@@ -30942,6 +30950,7 @@ taamito.com
 taati.co
 taavhealth.com
 taavonkar.com
+taavontextile.com
 taavtech.com
 taba-tools.com
 tabaar.com
@@ -30970,6 +30979,7 @@ tabarok.com
 tabaservice.com
 tabasom.org
 tabasshop.com
+tabchord.com
 tabdeal.org
 tabdilcard.com
 tabdilyab.com
@@ -32870,6 +32880,7 @@ tvrooyesh.com
 tvshowplus.com
 tvtobook.com
 tweetvape.com
+tweld.com
 twenty4brand.com
 twentysevenfashion.com
 twicekitchen.com
@@ -33638,6 +33649,7 @@ washlin.com
 washroo.com
 washtash.com
 wasstore.com
+watanfilm.com
 watchcentershop.com
 watchchi.com
 watchesset.com
@@ -33913,6 +33925,7 @@ www.chauffagekar.com
 www.chauffagekar.net
 www.chitire.com
 www.cinemazendegi.com
+www.dadeh-pardaz.com
 www.dadehpardaz.co
 www.dadehpardaz.info
 www.dadehpardaz.net
@@ -34267,6 +34280,7 @@ yaranelevator.com
 yaraneshgh.com
 yaranics.com
 yarapart.com
+yarapay.app
 yaraqshahgol.com
 yaraqstore.com
 yarashar.com
@@ -34652,7 +34666,6 @@ zarchee.com
 zarchin.shop
 zarchinsanat.com
 zarcut.com
-zardalanishop.com
 zardaroo.com
 zardband.com
 zardgol.com
@@ -35073,6 +35086,7 @@ zistagram.com
 zistasgari.com
 zistashop.com
 ziste100.com
+zistfa.com
 zistgar.com
 zistonline.com
 zistpardazesh.com
@@ -35081,7 +35095,6 @@ zistyarsolar.com
 zitamor.com
 ziteb.com
 zitechshop.com
-zitouch.com
 zivagallery.com
 zivamedicine.com
 zivanpet.com
@@ -35154,7 +35167,6 @@ zoodshour.com
 zookaar.com
 zoomamedia.com
 zoombazar.com
-zoomila.com
 zoomilo.com
 zoomkesht.com
 zoongame.com
