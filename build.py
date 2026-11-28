@@ -76,7 +76,7 @@ UNBREAK_WHITELIST = {
     "tapsi.cab", "tap33.me", "taximaxim.com", "kavenegar.com", "ghasedak.me",
     "raychat.io", "bale.ai", "eitaa.com", "farsitel.com", "neshan.org",
     "rajman.org", "cedarmaps.com", "aparat.com", "telewebion.com", "filimo.com",
-    "varzesh3.com", "dl150m.info", "dl175m.info", "linkulu.com", "film2media.cam"
+    "varzesh3.com", "dl150m.info", "dl175m.info", "linkulu.com", "film2media.cam", "qmehr724.com"
 }
 
 # Domains that must NEVER be direct (Proxy-required, broken, or international CDNs)
