@@ -185,7 +185,6 @@
 4goush.net
 4gozineh.com
 4hphone.com
-4jok.com
 4khal.com
 4khone.com
 4khooneh.org
@@ -1248,6 +1247,7 @@ akharinnews.com
 akhavan-oil.com
 akhavancenter.com
 akhavanhome.com
+akhavanpaper.com
 akhavanstore.com
 akhavilab.com
 akhavishop.com
@@ -1298,7 +1298,6 @@ aksbardar.com
 akserahem.com
 alaatv.com
 alaberz.com
-alacharmmeraj.com
 alaediin.com
 alaedin.travel
 alaeedin.com
@@ -1475,7 +1474,6 @@ alkadesign.com
 allahbeygi.com
 allahdadi.com
 allameamini.org
-allamehbook.com
 allanimal.info
 allbimeh.com
 allbox.market
@@ -2213,7 +2211,6 @@ aradbime.com
 aradbook.com
 aradbuildings.com
 aradcloud.com
-aradcomposite.com
 aradcomputer.com
 aradcooling.com
 araddentalco.com
@@ -4523,7 +4520,6 @@ bannercenter.co
 banodokht.com
 banojavan.com
 banokavir.com
-banolia.com
 banommi.com
 banomode.com
 banoo-irani.com
@@ -4702,7 +4698,6 @@ barkob.com
 barmancommerce.com
 barmanec.com
 barmannet.com
-barmanpuladpishdad.com
 barmapart.com
 barmaye.app
 barmkala.com
@@ -5353,7 +5348,6 @@ berenjnoori.com
 berenjonline.com
 berenjsaravi.com
 berenjshop.com
-berezent.com
 beriland1.com
 berim.ai
 berimkouh.com
@@ -5451,7 +5445,6 @@ biahyper.com
 biakala.com
 biakooh.com
 biamoz.com
-biamoz.org
 biashosh.com
 biato.shop
 biatokala.com
@@ -6828,7 +6821,6 @@ chobkala.com
 chocolandyazd.com
 chocolomer.com
 choconut.shop
-chodino.com
 chogancollection.com
 chompi-order.com
 chonanbakery.com
@@ -7134,6 +7126,7 @@ cookibook.app
 cookingflame.com
 cookisaz.shop
 cookkala.com
+cooler-pakhsh.com
 coolernavid.com
 coolernew.com
 coolerpaytakht.com
@@ -7366,7 +7359,6 @@ dakhlino.com
 dal-inst.com
 dalahoo.com
 dalakhanicarpet.com
-dalakoo.com
 dalano.com
 dalaranstore.com
 dalbormarket.com
@@ -12174,7 +12166,6 @@ giratools.com
 gisapublication.com
 gishasport.com
 gishe3.com
-gisheh8.com
 gisoo.net
 gisoogem.com
 gisookamand.com
@@ -16607,7 +16598,6 @@ kayashoes.com
 kayentools.com
 kayerweb.com
 kaysaco.com
-kazemi-watchgallery.com
 kazemi.me
 kazemiamlak.com
 kazemicarpet.com
@@ -17246,7 +17236,6 @@ kiazist.com
 kiccc.com
 kichibazar.com
 kichilbebe.com
-kichimikhad.com
 kickbooksing.com
 kicksofiran.com
 kidareh.com
@@ -17418,7 +17407,6 @@ kleez-home.com
 klgkala.com
 klidtell.com
 klinktools.com
-km-nowshahr.com
 kmcbama.com
 kmccenter.com
 kmcj7.com
@@ -21578,7 +21566,6 @@ nakhaei.com
 nakhilan.com
 nakhl-it.com
 nakhlak.shop
-nakhlbeauty.com
 nakhlcase.com
 nakhleston.com
 nakhlino.com
@@ -22336,7 +22323,6 @@ nikishop.net
 nikista.com
 nikitime.com
 nikiwork.com
-nikjet.com
 nikkharid.com
 niklaser.com
 nikmedic.com
@@ -22831,7 +22817,6 @@ nosratco.net
 nosratedu.com
 nosratplus.com
 nostop.loxblog.com
-notactive.store
 notaknuts.com
 notashan.org
 notashgroup.com
@@ -24031,7 +24016,6 @@ parsaplus.com
 parsaprinter.com
 parsaradshop.com
 parsaron.com
-parsasanat-co.com
 parsasell.com
 parsashimico.com
 parsasout.com
@@ -24063,7 +24047,6 @@ parsdez.com
 parsebarcode.com
 parsebazar.com
 parsecard.com
-parseda.com
 parseekenglish.com
 parseh-dentalclinic.com
 parsehkala.com
@@ -28905,7 +28888,6 @@ setareh-zarin.com
 setarehhome.com
 setarehiran.com
 setarehparvaz.com
-setarehsabz.com
 setarehsalamat.com
 setarehsamilawgroup.com
 setarehsho.com
@@ -29969,7 +29951,6 @@ sidano.shop
 sidarsoft.com
 sidlerbookshop.com
 siemenscontrol.com
-siemenskala.com
 siemenssimatic.com
 sienaleather.co
 sighaf.com
@@ -30616,7 +30597,6 @@ sperlouscompany.com
 sperlousnovin.com
 sperlouswood.com
 spersa-co.com
-speziafood.com
 spherical98.com
 spicekade.com
 spikalparts.com
@@ -30716,7 +30696,6 @@ steel-milad.com
 steel-zarrin.com
 steelalborz.com
 steelalborzhome.com
-steelalmas.com
 steelaras.com
 steelbahar.com
 steeldiaco.com
@@ -32616,6 +32595,7 @@ topack.org
 topactoys.com
 topariana.com
 topbanoo.com
+topberand.com
 topcaryadak.com
 topdoorbin.com
 topgem.shop
