@@ -746,7 +746,7 @@ def main():
     print("\n[+] 6/9: Partitioning Domestic Domains into Disjoint Modular Sets...", flush=True)
 
     MEDIA_PATTERNS = re.compile(r"(?:aparat|filimo|namava|filmnet|telewebion|gapfilm|cinematicket|tiwall|tamasha|namasha|antenn|lenz|mayaa|irib|seevid|radio|video|music|tv|vod|stream)")
-    BANKING_PATTERNS = re.compile(r"(?:bank|shaparak|sadad|mellat|melli|tejarat|saderat|pasargad|sb24|blubank|sepah|refah|keshavarzi|maskan|postbank|zarinpal|payping|idpay|jibit|nextpay|vandar|zibal|nobitex|wallex|bitpin|ramzinex|abantether|exir|bourse|seham|tsetmc|codal|emofid|agah|bimeh|azki)")
+    BANKING_PATTERNS = re.compile(r"(?:bank|shaparak|sadad|mellat|melli|tejarat|saderat|pasargad|sb24|blubank|sepah|refah|keshavarzi|maskan|postbank|zarinpal|payping|idpay|jibit|nextpay|vandar|zibal|nobitex|wallex|bitpin|ramzinex|abantether|exir|bourse|seham|tsetmc|codal|emofid|agah|bimeh|azki|qmehr|qmb|qbank)")
     GOV_PATTERNS = re.compile(r"(?:\.gov\.ir$|\.jud\.ir$|\.police\.ir$|sana\.gov|adliran|my\.gov|mardom|tax\.gov|tamin|post\.ir|dolat\.ir|majlis\.ir|sabteahval|moi\.ir|medu\.ir)")
     GAMING_PATTERNS = re.compile(r"(?:gameup|parshub|asiagame|vmp|fivem|gamefa|vgmag|zoomg|bazicenter|baziato|csgo|samp|bazi|game)")
     DOWNLOAD_PATTERNS = re.compile(r"(?:soft98|yasdl|downloadha|p30download|asandl|sarzamindownload|p30world|shahrsakhtafzar|zoomit|digiato|download|mirror|tarfandestan)")
